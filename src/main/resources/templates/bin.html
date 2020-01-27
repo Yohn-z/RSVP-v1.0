@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+    <meta charset="UTF-8">
+    <meta name="renderer" content="webkit">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <title>Routing Switching Virtual  Platform - 回收站</title>
+    <meta name="description">
+    <meta name="renderer" content="webkit">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" href="icon/topo.png" type="img/x-ico" />
+    <link rel="stylesheet" href="assets/css/global-9c7e54f1.css" type="text/css"/>
+    <link rel="stylesheet" href="assets/css/index-9c7e54f1.css" type="text/css"/>
+    <link rel="stylesheet" href="layer/theme/default/layer.css">
+    <script src="js/jquery.3.2.1.min.js"></script>
+
+    <script>
+        (function (i, s, o, g, r, a, m) {
+            i['GoogleAnalyticsObject'] = r;
+            i[r] = i[r] || function () {
+                (i[r].q = i[r].q || []).push(arguments)
+            }, i[r].l = 1 * new Date();
+            a = s.createElement(o),
+                m = s.getElementsByTagName(o)[0];
+            a.async = 1;
+            a.src = g;
+            m.parentNode.insertBefore(a, m)
+        })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+        ga('create', 'UA-28802488-1', 'auto');
+        ga('send', 'pageview');
+
+
+    </script>
+    <script src="assets/js/jquery-9c7e54f1.js" charset="UTF-8" type="text/javascript"></script>
+    <script src="assets/js/util-9c7e54f1.js" charset="UTF-8" type="text/javascript"></script>
+    <script main=true src="assets/js/min/index.min-9c7e54f1.js" charset="UTF-8" type="text/javascript"></script>
+
+
+    <script src="js/bootstrap.min.js"></script>
+    <script src="layer/layer.js"></script>
+    <script src="angular/angular.min.js"></script>
+    <script src="angular/app.js"></script>
+    <script src="angular/service/homeService.js"></script>
+    <script src="angular/controller/homeController.js"></script>
+</head>
+<body ng-app="rssp" ng-controller="homeController" ng-init="initBin()" ng-click="closeMenu()">
+<header>
+    <h3 style="color: #859196;line-height: 4" class="h5 ftco-subheading mb-5 ftco-animate">RSVP</h3>
+    <div class="left-control-btn"></div>
+    <span class="left-item">
+<a href="#" class="active">个人中心</a>
+</span>
+    <div class="right-item">
+        <div id="user-logo" class="user-logo" ng-click="showHeadMenu($event)">
+            <img src='https://guolin.oss-cn-beijing.aliyuncs.com/system/2019-04-07/rssp_default_head.png'/>
+        </div>
+        <div class="menu" id="head_menu" style=" top: 40px; display: none;right: -13px;min-width: 55px;height: 28px">
+            <ul>
+                <li tit="restore" ng-click="logout()">注销</li>
+            </ul>
+        </div>
+        <div class="notice-icon">
+            <div class="icon-warp">
+                <span class="icons">&#xe69f;</span>
+            </div>
+        </div>
+    </div>
+</header>
+<div class="con-left">
+
+    <div class="left-box">
+        <a id="new-file" href="./network" class="button new-file">新建</a>
+    </div>
+    <a href="./home" data-nav="diagrams"><span class="icons">&#xe687;</span><label>我的文件</label></a>
+    <a href="javascript:;" data-nav="colla"><span class="icons">&#xe689;</span><label>与我协作</label></a>
+    <a href="javascript:;" data-nav="fav"><span class="icons">&#xe68a;</span><label>我的收藏</label></a>
+    <a href="./bin" data-nav="trash" class="active"><span class="icons">&#xe68b;</span><label>回收站</label></a>
+</div>
+<div class="con-right">
+    <div class="dir">
+        <span id="dir_root" class="item" data-f-id="root">回收站</span>
+        <span title="List View" id="dir_sort" class="icons"></span>
+        <span title="排序" id="sort_by" class="icons">&#xe6a1;</span>
+        <ul class="menu" id="sort_by_menu">
+            <li data-sort="title"><span class="icons"></span><span>标题</span></li>
+            <li data-sort="lastModify"><span class="icons">&#xe658;</span><span>最后修改时间</span></li>
+        </ul>
+        &nbsp;
+        <span class="search-btn"><span class="icons">&#xe6a0;</span><input type="text"/></span>
+        <span title="清空回收站" id="clear_trash" class="icons hide">&#xe68b;</span>
+    </div>
+    <div class="file-list">
+
+        <div ng-repeat="entity in list" class="file-list-item" tp="chart" cate="flow"
+             style="width: calc(11.1111% - 16px);cursor: pointer">
+            <div class="file-img-container"><img style="background-color: #fff"
+                    src="{{entity.snapshot}}"></div>
+            <div class="title ct"><a href="javascript:;"><span class="icons"
+                                                               style="color:#4386f5;font-size:17px;"></span><label
+                    ng-bind="entity.title"></label></a>
+            </div>
+
+            <span class="icons op" ng-click="showMenu(entity.id,$event)"></span>
+            <div class="menu" id="{{entity.id}}" style="left: 85.8833px; top: 27px; display: none;">
+                <ul>
+                    <li tit="restore" ng-click="restore(entity)"><span class="icons"></span> &nbsp;&nbsp;恢复</li>
+                    <li tit="delete" ng-click="delForever(entity)"><span class="icons"></span> &nbsp;&nbsp;彻底删除</li>
+                </ul>
+            </div>
+        </div>
+
+    </div>
+    <div class="page">
+        <div class="pagination"></div>
+    </div>
+</div>
+<div class="file-op"></div>
+
+
+
+</body>
+</html>

@@ -1,0 +1,1649 @@
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    <meta content="max-age=30" http-equiv="Cache-Control" />
+    <script src="cmd/js/jquery-1.7.1.min.js"></script>
+    <script src="cmd/js/jquery.mousewheel-min.js"></script>
+    <script src="cmd/js/jquery.terminal.min.js"></script>
+    <link href="cmd/css/jquery.terminal.min.css" rel="stylesheet"/>
+    <script src="https://unpkg.com/js-polyfills/keyboard.js"></script>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>命令行控制台</title>
+    <style>
+        .terminal {
+            --color: rgba(0, 128, 0, 0.99);
+            --background: white;
+            --animation: terminal-bar;
+            --size: 1.5;
+
+        }
+        .terminal, .cmd, .terminal .terminal-output div div, .cmd .prompt {
+            font-weight: bold;
+        }
+
+    </style>
+</head>
+<body>
+<script>
+    jQuery(function($) {
+
+        let cMode = "user"; //当前模式
+        let cENet = "" //当前接口
+        let cVlan = ""//当前vlan
+
+        var id = 1;
+        var currentNode =  parent.editor.currentNode;//父页面设备节点
+        var nodeConfig = currentNode.config;
+        var hostName = nodeConfig.hostName;
+
+      /*  function circulateExecute(){
+            console.log(nodeConfig.Routing.RIP);
+        }
+
+
+        setInterval("circulateExecute();",5000);*/
+        /*function co(){
+            let RIP= nodeConfig.Routing.RIP;
+            for(let i=0;i<RIP.length;i++){
+                console.log(RIP[i].network_address);
+            }
+        }
+        setInterval(co(),1000);*/
+
+        /*
+        * node:当前节点对象
+        * ethernet：当前接口
+        *tip：目的ip
+        * mip：当前ip
+        * fip:源ip
+        * mac:源mac地址
+        * DG：源网关
+        * Mask：子网掩码
+        * vlan：当前虚拟局域网、
+        * tnet：当前网络号
+        *
+        * */
+
+        function find(node,ethernet,tip,mip,fip,mac,DG,Mask,vlan,tnet,linkstack){
+            /*node 当前节点；
+            ethernet 当前端口信息；
+            tip 目标ip;
+            mip 当前ip
+            fip 初始ip*/
+
+            if(node && ethernet){
+                /*获取节点配置信息*/
+                var nodeConfig = node.config;
+                /*当前节点类型*/
+                var type = node.elementType;
+
+
+
+
+                console.log(type+"--"+node.deviceId+"--"+ethernet.IP_Address+"--"+ethernet.name+"--"+ethernet.Port_Status+"--"+vlan+"--"+tnet);
+
+                //如果当前接口的ip地址等于目标ip
+                if(mip == tip){
+                    return {
+                        n : node,
+                        e : ethernet
+
+                    };
+                }else {
+                    //边界判断 如果是主机节点 ，并且不是初始的主机节点
+                    if(type == "HostNode" & mip!=fip){
+                    }else {
+                        //如果是初始主机节点
+                        if(type == "HostNode" & mip==fip || type != "HostNode" & mip==fip ){
+
+                            if(type == "HostNode"){
+                                /*  if(net.checkSameNet(tip,Mask,fip,Mask)){
+
+                                  }*/
+                                let infos = ethernet.connect.split(";");//infos[0] 目标设备id；infos[1] 目标设备端口；infos[2] 我方设备端口
+                                if(infos.length == 3){
+                                    let tNode = parent.editor.utils.getNodeByKey("deviceId",infos[0]);//下一个节点
+                                    if(tNode){
+                                        let tNodeConfig = tNode.config;//下一个节点的配置
+                                        let tEthernet; //下一个节点的端口信息
+                                        if (tNodeConfig.moduleNum > 0 && tNodeConfig.portNum > 0) {
+                                            let module = new Array(tNodeConfig.moduleNum);
+                                            for (let i = 0; i < tNodeConfig.moduleNum; i++) {
+                                                let num = "module" + i;
+                                                module[i] = tNodeConfig[num];
+                                                let m = module[i];
+                                                for (let j in m) {
+                                                    if (m[j].name == infos[1]  ) {
+                                                        tEthernet = m[j];
+                                                    }
+                                                }
+                                            }
+                                        }
+                                        vlan = tEthernet.vlan;
+                                        let Default_Gateway = ethernet.Default_Gateway; //当前节点的默认网关
+
+
+                                        if(tEthernet.name == infos[1] & tEthernet.Port_Status =="on"){
+                                            if(net.checkSameNet(tip,Mask,fip,Mask)){
+
+                                                let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                if(res){
+                                                    let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                    linkstack.push(linkinfo.link);
+                                                    return res;
+                                                }
+                                            }else {
+                                                if(net.checkSameNet(DG,Mask,fip,Mask) & DG != fip){
+                                                    let DGNode = find(tNode,tEthernet,DG,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                    if(DGNode){
+                                                        let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                        linkstack.push(linkinfo.link);
+                                                        let res = find(DGNode.n,DGNode.e,tip,DGNode.e.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                        if(res){
+                                                            let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                            linkstack.push(linkinfo.link);
+                                                            return res;
+                                                        }
+                                                    }
+                                                }
+
+                                            }
+
+
+                                        }
+                                    }
+                                }
+                            }
+
+
+                            if(type == "RouterNode"){
+
+                                let flag = 0;
+                                let mf;
+                                let staticRoutes = nodeConfig.Routing.static;
+                                vlan == ""
+                                for(let i=0;i<staticRoutes.length;i++){
+                                    let st = staticRoutes[i];
+                                    if(st.type == "static"){
+                                        for(let j=0;j<staticRoutes.length;j++){
+                                            //校验下一跳地址，是否匹配直连路由：下一跳静态路由地址只能是ip地址！！！！！
+                                            if(staticRoutes[j].type == "direct"){
+                                                if(net.checkSameNet(st.NextHop,staticRoutes[j].Mask,staticRoutes[j].NetWork,staticRoutes[j].Mask)){
+                                                    st.interface = staticRoutes[j].interface;
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+
+                                }
+
+                                //校验是否配置正确的静态路由连接到非直连网络
+                                for(let z=0;z<staticRoutes.length;z++){
+                                    let st = staticRoutes[z];
+                                    if(net.checkSameNet(tip,st.Mask,st.NetWork,st.Mask)){
+                                        flag = 1;
+                                        mf = z;
+                                    }else {
+                                        if( st.NetWork == "0.0.0.0" & st.Mask=="0.0.0.0"){
+                                            flag = 1;
+                                            mf = z;
+                                        }
+                                    }
+                                }
+                                if(flag ==1){
+
+                                    if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                                        let module = new Array(nodeConfig.moduleNum);
+                                        for (let i = 0; i < nodeConfig.moduleNum; i++) {
+                                            let num = "module" + i;
+                                            module[i] = nodeConfig[num];
+                                            let m = module[i];
+                                            for (let j in m) {
+                                                if(m[j].name == staticRoutes[mf].interface ){
+                                                    if(m[j].IP_Address == tip){
+                                                        tnet = staticRoutes[mf].NetWork;
+                                                        return {
+                                                            n : node,
+                                                            e : ethernet
+
+                                                        };
+                                                    }
+
+                                                    let mEthernet =  m[j];
+                                                    let infos = m[j].connect.split(";");
+                                                    let tNode = parent.editor.utils.getNodeByKey("deviceId",infos[0]);//下一个节点
+
+
+                                                    if(tNode){
+
+                                                        let tEthernet;
+                                                        let tConfig = tNode.config;
+                                                        if (tConfig.moduleNum > 0 && tConfig.portNum > 0) {
+                                                            let module = new Array(tConfig.moduleNum);
+                                                            for (let m = 0; m < tConfig.moduleNum; m++) {
+                                                                let num = "module" + m;
+                                                                module[m] = tConfig[num];
+                                                                let mn = module[m];
+                                                                for (let n in mn) {
+                                                                    if (mn[n].name == infos[1]) {
+                                                                        tnet = staticRoutes[mf].NetWork;
+                                                                        tEthernet = mn[n];
+                                                                        let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                                        if(res){
+                                                                            let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                                            linkstack.push(linkinfo.link);
+                                                                            return res;
+                                                                        }
+
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }else{
+                                    /*  let rip = currentNode.Routing.RIP;
+                                      if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                                          let module = new Array(nodeConfig.moduleNum);
+                                          for (let i = 0; i < nodeConfig.moduleNum; i++) {
+                                              let num = "module" + i;
+                                              module[i] = nodeConfig[num];
+                                              let m = module[i];
+                                              for (let j in m) {
+
+                                                  if (m[j].name != ethernet.name & m[j].Port_Status =="on" & m[j].connect !="") {
+                                                      //校验vlan
+                                                      let v = 0;
+                                                      if(ethernet.mode == "access"){
+
+                                                          let vlans = m[j].vlan.split(";");
+                                                          console.log(vlans[0]+"-3-"+vlan)
+                                                          for(let o=0;o<vlans.length;o++){
+                                                              if(vlans[o] == vlan){
+                                                                  v=1;
+                                                              }
+                                                          }
+                                                      }else {
+                                                          let vlans = m[j].vlan.split(";");
+                                                          let cvlans =  vlan.split(";");
+                                                          for(let o=0;o<vlans.length;o++){
+                                                              for(let p=0;p<cvlans.length;p++){
+                                                                  if(vlans[o] == cvlans[p]){
+                                                                      v=1;
+                                                                  }
+                                                              }
+                                                          }
+
+                                                      }
+                                                      if(v == 1){
+                                                          //设备内转发  m[j]：内部转发的端口
+                                                          let mEthernet = m[j];  //内部转发的端口
+                                                          let infos = mEthernet.connect.split(";");
+                                                          //如果内部匹配
+                                                          if(mEthernet.IP_Address == tip){
+
+                                                              return {
+                                                                  n : node,
+                                                                  e : ethernet
+
+                                                              };
+
+                                                          }
+
+                                                          let tNode = parent.editor.utils.getNodeByKey("deviceId",infos[0]);//下一个节点
+                                                          let tNodeConfig = tNode.config;//下一个节点的配置
+                                                          let tEthernet;
+                                                          //查找下一个节点的端口信息
+                                                          if (tNodeConfig.moduleNum > 0 && tNodeConfig.portNum > 0) {
+                                                              let module = new Array(tNodeConfig.moduleNum);
+                                                              for (let k = 0; k < tNodeConfig.moduleNum; k++) {
+                                                                  let num = "module" + k;
+                                                                  module[k] = tNodeConfig[num];
+                                                                  let m = module[k];
+                                                                  for (let jk in m) {
+                                                                      if (m[jk].name == infos[1]) {
+                                                                          tEthernet = m[jk];
+                                                                      }
+                                                                  }
+                                                              }
+                                                          }
+
+                                                          let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet);
+                                                          if(res){
+                                                              //建立arp缓存表
+                                                              for(let k =0;k<carp.length;k++){
+                                                                  if(tip == carp[k].t_ipAddress){
+                                                                      carp.splice(k,1);
+                                                                  }
+                                                              }
+                                                              let arpi ={
+                                                                  c_ethernet : ethernet.name,
+                                                                  t_ipAddress : tip,
+                                                                  t_mask :  Mask,
+                                                                  t_mac :mac,
+                                                                  t_ethernet :tEthernet.name,
+                                                                  t_type : tNode.elementType,
+                                                                  t_deviceId :tNode.deviceId
+                                                              }
+                                                              node.config.arp.push(arpi);
+                                                              return res;
+                                                          }
+
+                                                      }
+
+
+
+                                                  }
+                                              }
+
+                                          }
+                                      }*/
+
+
+                                }
+
+
+                            }
+
+                        }else{
+
+                            //如果是路由或者交换
+                            //遍历当前节点端口
+                            if(type == "RouterNode"){
+
+                                vlan = "";
+
+                                let flag = 0;
+                                let mf;
+                                let staticRoutes = nodeConfig.Routing.static;
+                                for(let i=0;i<staticRoutes.length;i++){
+                                    let st = staticRoutes[i];
+                                    if(st.type == "static"){
+                                        for(let j=0;j<staticRoutes.length;j++){
+                                            //校验下一跳地址，是否匹配直连路由：下一跳静态路由地址只能是ip地址！！！！！
+                                            if(staticRoutes[j].type == "direct"){
+                                                if(net.checkSameNet(st.NextHop,staticRoutes[j].Mask,staticRoutes[j].NetWork,staticRoutes[j].Mask)){
+                                                    st.interface = staticRoutes[j].interface;
+                                                    st.connect = staticRoutes[j].connect;
+                                                }
+                                            }
+                                        }
+
+                                    }
+
+
+                                }
+
+                                //校验是否配置正确的静态路由连接到非直连网络
+                                for(let z=0;z<staticRoutes.length;z++){
+                                    let st = staticRoutes[z];
+                                    if(net.checkSameNet(tip,st.Mask,st.NetWork,st.Mask)){
+                                        flag = 1;
+                                        mf = z;
+                                    }else {
+                                        if( st.NetWork == "0.0.0.0" & st.Mask=="0.0.0.0"){
+                                            flag = 1;
+                                            mf = z;
+                                        }
+                                    }
+                                }
+                                if(flag ==1){
+                                    if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                                        let module = new Array(nodeConfig.moduleNum);
+                                        for (let i = 0; i < nodeConfig.moduleNum; i++) {
+                                            let num = "module" + i;
+                                            module[i] = nodeConfig[num];
+                                            let m = module[i];
+                                            for (let j in m) {
+
+                                                if(m[j].name == staticRoutes[mf].interface & m[j].name != ethernet.name){
+
+                                                    if(m[j].IP_Address == tip){
+                                                        tnet = staticRoutes[mf].NetWork;
+                                                        return {
+                                                            n : node,
+                                                            e : ethernet
+
+                                                        };
+                                                    }
+
+                                                    let mEthernet =  m[j];
+                                                    let infos = m[j].connect.split(";");
+                                                    let tNode = parent.editor.utils.getNodeByKey("deviceId",infos[0]);//下一个节点
+                                                    if(tNode){
+                                                        let tEthernet;
+                                                        let tConfig = tNode.config;
+                                                        if (tConfig.moduleNum > 0 && tConfig.portNum > 0) {
+                                                            let module = new Array(tConfig.moduleNum);
+                                                            for (let m = 0; m < tConfig.moduleNum; m++) {
+                                                                let num = "module" + m;
+                                                                module[m] = tConfig[num];
+                                                                let mn = module[m];
+                                                                for (let n in mn) {
+                                                                    if (mn[n].name == infos[1]) {
+                                                                        tnet = staticRoutes[mf].NetWork;
+                                                                        tEthernet = mn[n];
+                                                                        let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                                        if(res){
+                                                                            let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                                            linkstack.push(linkinfo.link);
+                                                                            return res;
+                                                                        }
+
+                                                                    }
+                                                                }
+                                                            }
+                                                        }
+                                                    }
+                                                }
+                                            }
+                                        }
+                                    }
+                                }
+
+
+
+                            }else if(type == "SwitchNode"){
+                                if(vlan == ""){
+                                    vlan = ethernet.vlan;
+                                }
+
+                                //当前arp缓存表
+                                let carp = node.config.arp;
+                                let f = 0;
+                                //查询arp缓存表
+                                for(let i=0;i<carp.length;i++){
+
+                                    if(carp[i].t_ipAddress == tip){
+                                        let tNode = parent.editor.utils.getNodeByKey("deviceId",carp[i].t_deviceId);
+                                        if(tNode){
+                                            let tConfig = tNode.config;
+                                            let tEthernet;
+                                            let cEthernet;
+
+                                            if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                                                let module = new Array(nodeConfig.moduleNum);
+                                                for (let a = 0; a < nodeConfig.moduleNum; a++) {
+                                                    let num = "module" + a;
+                                                    module[a] = nodeConfig[num];
+                                                    let m = module[a];
+                                                    for (let j in m) {
+                                                        if(m[j].name == carp[i].c_ethernet & m[j].Port_Status == "on" & m[j].connect != ""){
+                                                            cEthernet = m[j];
+                                                        }
+
+                                                    }
+
+                                                }
+                                            }
+
+                                            //校验vlan
+                                            let v = 0;
+                                            if(cEthernet != null){
+                                                if(ethernet.mode == "access"){
+                                                    console.log(cEthernet.vlan+"-arp-"+vlan)
+                                                    let vlans = cEthernet.vlan.split(";");
+                                                    for(let o=0;o<vlans.length;o++){
+                                                        if(vlans[o] == vlan){
+                                                            v=1;
+                                                        }
+                                                    }
+                                                }else {
+                                                    let vlans = m[j].vlan.split(";");
+                                                    let cvlans =  vlan.split(";");
+                                                    for(let o=0;o<vlans.length;o++){
+                                                        for(let p=0;p<cvlans.length;p++){
+                                                            if(vlans[o] == cvlans[p]){
+                                                                v=1;
+                                                            }
+                                                        }
+                                                    }
+
+                                                }
+                                            }
+
+
+                                            if (tConfig.moduleNum > 0 && tConfig.portNum > 0) {
+                                                let module = new Array(tConfig.moduleNum);
+                                                for (let a = 0; a < tConfig.moduleNum; a++) {
+                                                    let num = "module" + a;
+                                                    module[a] = tConfig[num];
+                                                    let m = module[a];
+                                                    for (let j in m) {
+                                                        if(m[j].name == carp[i].t_ethernet & m[j].Port_Status == "on" & m[j].connect != "" & m[j].name != ethernet.name & v==1){
+                                                            tEthernet = m[j];
+                                                            let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                            if(res){
+                                                                let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                                linkstack.push(linkinfo.link);
+                                                                f =1;
+                                                                return res;
+                                                            }
+
+
+                                                        }
+
+                                                    }
+
+                                                }
+                                            }
+                                        }
+
+
+
+                                    }
+                                }
+                                if(f==0){
+                                    if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                                        let module = new Array(nodeConfig.moduleNum);
+                                        for (let i = 0; i < nodeConfig.moduleNum; i++) {
+                                            let num = "module" + i;
+                                            module[i] = nodeConfig[num];
+                                            let m = module[i];
+                                            for (let j in m) {
+
+                                                if (m[j].name != ethernet.name & m[j].Port_Status =="on" & m[j].connect !="") {
+                                                    //校验vlan
+                                                    let v = 0;
+                                                    if(ethernet.mode == "access"){
+
+                                                        let vlans = m[j].vlan.split(";");
+                                                        console.log(vlans[0]+"-3-"+vlan)
+                                                        for(let o=0;o<vlans.length;o++){
+                                                            if(vlans[o] == vlan){
+                                                                v=1;
+                                                            }
+                                                        }
+                                                    }else {
+                                                        let vlans = m[j].vlan.split(";");
+                                                        let cvlans =  vlan.split(";");
+                                                        for(let o=0;o<vlans.length;o++){
+                                                            for(let p=0;p<cvlans.length;p++){
+                                                                if(vlans[o] == cvlans[p]){
+                                                                    v=1;
+                                                                }
+                                                            }
+                                                        }
+
+                                                    }
+                                                    if(v == 1){
+                                                        //设备内转发  m[j]：内部转发的端口
+                                                        let mEthernet = m[j];  //内部转发的端口
+                                                        let infos = mEthernet.connect.split(";");
+                                                        //如果内部匹配
+                                                        if(mEthernet.IP_Address == tip){
+
+                                                            return {
+                                                                n : node,
+                                                                e : ethernet
+
+                                                            };
+
+                                                        }
+
+                                                        let tNode = parent.editor.utils.getNodeByKey("deviceId",infos[0]);//下一个节点
+                                                        if(tNode){
+                                                            let tNodeConfig = tNode.config;//下一个节点的配置
+                                                            let tEthernet;
+                                                            //查找下一个节点的端口信息
+                                                            if (tNodeConfig.moduleNum > 0 && tNodeConfig.portNum > 0) {
+                                                                let module = new Array(tNodeConfig.moduleNum);
+                                                                for (let k = 0; k < tNodeConfig.moduleNum; k++) {
+                                                                    let num = "module" + k;
+                                                                    module[k] = tNodeConfig[num];
+                                                                    let m = module[k];
+                                                                    for (let jk in m) {
+                                                                        if (m[jk].name == infos[1]) {
+                                                                            tEthernet = m[jk];
+                                                                        }
+                                                                    }
+                                                                }
+                                                            }
+
+                                                            let res = find(tNode,tEthernet,tip,tEthernet.IP_Address,fip,mac,DG,Mask,vlan,tnet,linkstack);
+                                                            if(res){
+                                                                let linkinfo = parent.editor.utils.findLink(tNode,tEthernet.name);
+                                                                linkstack.push(linkinfo.link);
+                                                                //建立arp缓存表
+                                                                for(let k =0;k<carp.length;k++){
+                                                                    if(tip == carp[k].t_ipAddress){
+                                                                        carp.splice(k,1);
+                                                                    }
+                                                                }
+                                                                let arpi ={
+                                                                    c_ethernet : ethernet.name,
+                                                                    t_ipAddress : tip,
+                                                                    t_mask :  Mask,
+                                                                    t_mac :mac,
+                                                                    t_ethernet :tEthernet.name,
+                                                                    t_type : tNode.elementType,
+                                                                    t_deviceId :tNode.deviceId
+                                                                }
+                                                                node.config.arp.push(arpi);
+                                                                return res;
+                                                            }
+                                                        }
+
+                                                    }
+
+
+
+                                                }
+                                            }
+
+                                        }
+                                    }
+                                }
+
+
+
+                            }else {
+
+                            }
+
+                        }
+                    }
+                }
+
+            }
+
+
+
+
+
+        }
+
+
+        var net = {
+            user : [
+                {
+                    value : "configure",
+                    dis : "123412",
+                    next : [
+                        {
+                            value : "terminal",
+                            dis : "121231233412",
+                            next : []
+                        }
+                    ]
+
+                },
+                {
+                    value : "conmthi",
+                    dis : "123412",
+
+                },
+                {
+                    value : "cokii",
+                    dis : "123412",
+                }
+            ],
+
+            privileged :[],
+            config:[],
+            config_if:[],
+
+
+
+            //解析命令
+            selfeveal:function (cmd) {
+                var cmds = cmd.split(" ");
+                return cmds;
+            },
+
+            //设置当前进入的接口
+            setethernet:function(setFace,port){
+                cENet = setFace+""+port;
+                var b = net.checkethernet(cENet);
+                if(b=="true"){
+                    return "true"
+                }else{
+                    cENet = "";
+                    return "false"
+                }
+
+            },
+            //十进制转换二进制
+            tenToTwo:function(num,Bits){
+                var resArry = [];
+                var xresArry = [];
+                i=0;
+                for(;num>0;){
+                    resArry.push(num % 2);
+                    num=parseInt(num/2);
+                    i++;
+                }
+                for(j=i-1;j>=0;j--)
+                    xresArry.push(resArry[j]);
+                if (Bits < xresArry.length) {
+                    console.log("位数小于二进制位数")
+                }
+                if (Bits) {
+                    for(var r = xresArry.length; r < Bits; r++) {
+                        xresArry.unshift(0);
+                    }
+                }
+
+                return xresArry.join().replace(/,/g, '');
+
+            },
+            //将十进制的ip地址转换为二进制
+            ipTo2:function(ip){
+              var ips = ip.split(".");
+              var ip_2 = "";
+              for(let i=0;i<ips.length;i++){
+                  let two = net.tenToTwo(ips[i],8);
+                  ip_2 += two;
+              }
+              return ip_2;
+            },
+            //判断指定两个ip地址是否处于一个网段
+            checkSameNet:function(ip1,ipm1,ip2,ipm2){
+                let a1 = net.ipTo2(ip1);
+                let a2 = net.ipTo2(ipm1);
+                let b1 = net.ipTo2(ip2);
+                let b2 = net.ipTo2(ipm2);
+                let y1 = net.yu(a1,a2);
+                let y2 = net.yu(b1,b2);
+                if(y1 == y2){
+                    return true
+                }
+                return false;
+            },
+
+            //输入两串二进制ip,计算与
+            yu:function (ip1,ip2) {
+
+                let ip1s = ip1.split('');
+                let ip2s = ip2.split('');
+                let yu =[];
+                if(ip1s.length = ip2s.length){
+                    for(let i=0;i<ip1s.length;i++){
+                        let y = ip1s[i]&ip2s[i];
+                        yu.push(y);
+                    }
+                }
+                return yu.join().replace(/,/g, '');
+
+            },
+
+            
+            //配置静态路由
+            ipRoute:function (targetNet,sub,reNet,enet) {
+
+                if(enet == null){
+                    if( !net.isValidIP(targetNet) || !net.isValidIP(sub) || !net.isValidIP(reNet)){
+                        return "IP ADDRESS ERROR";
+                    }
+                }else{
+                    reNet = reNet+enet+"";
+                    if(net.checkethernet(reNet) == false){
+                        return "NO ETHERNET";
+                    }
+                }
+
+                var routen = {
+                    NetWork : targetNet,
+                    Mask : sub,
+                    NextHop : reNet,
+                    type : "static",
+                    connect : "",
+                    interface : "",
+                    pre : "1",
+                    dis : ""
+                }
+                /*nodeConfig.Routing.static = [];*/
+                nodeConfig.Routing.static.push(routen);
+                return "true"
+            },
+            //查找当前接口是否匹配
+            checkethernet:function(ethertnet){
+                if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                    let module = new Array(nodeConfig.moduleNum);
+                    for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                        var num = "module" + i;
+                        module[i] = nodeConfig[num];
+                        let m = module[i];
+                        for (let j in m) {
+                            if (m[j].name == ethertnet) {
+                                return "true"
+                            }
+                        }
+                        /*console.log(own.ethernetMenu.html());*/
+                    }
+                    return "false"
+
+                }
+            },
+            //设置端口不关闭
+            shut:function(cmd){
+                var cmds = cmd.split(" ");
+                if(cmds.length == 1){
+                        if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                            let module = new Array(nodeConfig.moduleNum);
+                            for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                                var num = "module" + i;
+                                module[i] = nodeConfig[num];
+                                let m = module[i];
+                                for (let j in m) {
+                                    if (m[j].name == cENet) {
+                                        m[j].Port_Status = "false";
+                                        let linkinfo = parent.editor.utils.findLink(currentNode,m[j].name);
+                                        console.log(linkinfo);
+                                        if(linkinfo!=null){
+                                            if(linkinfo.type=="A"){
+                                                linkinfo.link.cnode.fillColor="255,0,0"
+                                            }
+                                            if(linkinfo.type=="Z"){
+                                                linkinfo.link.enode.fillColor="255,0,0"
+                                            }
+                                        }
+
+                                        return "true"
+                                    }
+                                }
+                                /*console.log(own.ethernetMenu.html());*/
+                            }
+                            return "no found"
+
+                    }
+                }else{
+                        if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                            let module = new Array(nodeConfig.moduleNum);
+                            for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                                var num = "module" + i;
+                                module[i] = nodeConfig[num];
+                                let m = module[i];
+                                for (let j in m) {
+                                    if (m[j].name == cENet) {
+                                        m[j].Port_Status = "on";
+                                        var linkinfo = parent.editor.utils.findLink(currentNode,m[j].name);
+                                        console.log(linkinfo);
+                                        if(linkinfo!=null){
+                                            if(linkinfo.type=="A"){
+                                                linkinfo.link.cnode.fillColor="0,255,255"
+                                            }
+                                            if(linkinfo.type=="Z"){
+                                                linkinfo.link.enode.fillColor="0,255,255"
+                                            }
+                                        }
+
+                                        return "true"
+                                    }
+                                }
+                                /*console.log(own.ethernetMenu.html());*/
+                            }
+                            return "no found"
+                        }
+
+                }
+            },
+
+
+            //设置端口ip地址
+            ipAddress :function (nextCMD,node,currentFace,ipAdderss,subNetMask,guan) {
+                currentFace = cENet;
+                if(nextCMD == "address" || nextCMD == "add"){
+
+                    if(!net.isValidIP(ipAdderss) || !net.isValidIP(subNetMask)){
+                        return "IP ADDRESS ERROR";
+                    }
+                    if(guan != null & !net.isValidIP(guan)){
+                        return "IP ADDRESS ERROR";
+                    }
+
+                    if(node!=null) {
+                        nodeConfig = node.config;
+                        if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                            let module = new Array(nodeConfig.moduleNum);
+                            for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                                var num = "module" + i;
+                                module[i] = nodeConfig[num];
+                                let m = module[i];
+                                for (let j in m) {
+
+                                    if (m[j].name == currentFace) {
+                                        if(node.elementType =="RouterNode"){
+                                            let nR =nodeConfig.Routing.static;
+                                            let ttt = net.cNetByIpandMask(ipAdderss,subNetMask);
+                                            for(let l=0;l<nR.length;l++){
+                                                if(nR[l].NextHop == currentFace){
+                                                    nR.splice(l,1);
+                                                }
+                                            }
+                                            let routen = {
+                                                NetWork : ttt.netip,
+                                                Mask : subNetMask,
+                                                NextHop : m[j].name,
+                                                type : "direct",
+                                                interface : m[j].name,
+                                                connect : m[j].connect,
+                                                pre : "1",
+                                                dis : 0
+                                            }
+                                            /*nodeConfig.Routing.static = [];*/
+                                            nodeConfig.Routing.static.push(routen);
+
+                                        }
+
+
+
+
+
+                                        m[j].IP_Address = ipAdderss;
+                                        m[j].SubNet_Mask = subNetMask;
+                                        if(guan != null & node.elementType=="HostNode"){
+                                            m[j].Default_Gateway = guan;
+                                        }
+
+                                        return "true"
+                                    }
+                                }
+                                /*console.log(own.ethernetMenu.html());*/
+                            }
+                            return "no found"
+                        }
+                    }
+
+                }else{
+                    return "error"
+                }
+            },
+            //输入网络地址和子网掩码，计算网络段
+            cNetByIpandMask:function(ip,mask){
+                let ips = ip.split(".");
+                let masks = mask.split(".");
+                let nums = "";
+                let ip2 = [];
+                let mask2=[];
+                let numi =0;
+                let netip = "";
+                for(let i=0;i<ips.length;i++){
+                    let two = net.tenToTwo(ips[i],8);
+                    ip2.push(two);
+                }
+                for(let j=0;j<masks.length;j++){
+                    let two = net.tenToTwo(masks[j],8);
+                    mask2.push(two);
+                    nums+=two;
+                }
+                for(let s=0;s<4;s++){
+                    let S = net.yu(ip2[s],mask2[s]);
+                    let tenS = parseInt(S,2);
+                    if(netip == ""){
+                        netip += tenS;
+                    }else {
+                        netip = netip+"."+tenS;
+                    }
+
+                }
+                var num = nums.split('');
+                for(let k=0;k<num.length;k++){
+                    if(num[k] == '1'){
+                        numi++;
+                    }
+
+                }
+
+                return {
+                    netip : netip,
+                    num : numi
+                }
+
+
+            },
+            //是否为正整数
+            isPositiveInteger :function (s){
+                var re = /^[0-9]+$/ ;
+                return re.test(s)
+             },
+            //vlan 是否已经被使用
+            isVlanHas:function (id) {
+                var v = nodeConfig.vlanDatabse.vlan;
+                for(let i=0;i<v.length;i++){
+                    if(v[i].No == id){
+                        return false;
+                    }
+                }
+                cVlan = id;
+                return true;
+            },
+            //创建vlan
+            addVlan:function(id){
+                var vlan = {
+                    No : id,
+                    name : "",
+                    ip : ""
+                }
+                cVlan = id;
+                nodeConfig.vlanDatabse.vlan.push(vlan);
+            },
+            setVlanName:function (id,name) {
+                var v = nodeConfig.vlanDatabse.vlan;
+                for(let i=0;i<v.length;i++){
+                    if(v[i].No == id){
+                        v[i].name = name;
+                        return true;
+                    }
+                }
+                return false;
+
+            },
+            deletCmd: function (cmd) {
+                var cmds = cmd.split(" ");
+                if(cmds[1] == "ip" & cmds[2] == "route"){
+                    var nR = nodeConfig.Routing.static;
+                    for(let i=0;i<nR.length;i++){
+                        if(nR[i].NetWork == cmds[3] & nR[i].Mask == cmds[4] & nR[i].NextHop == cmds[5]){
+                            nR.splice(i,1);
+                        }
+                    }
+                }
+                if(cmds[1] == "vlan"){
+                    var nV = nodeConfig.vlanDatabse.vlan;
+                    for(let i=0;i<nV.length;i++){
+                        if(nV[i].No == cmds[2]){
+                            nV.splice(i,1);
+                        }
+                    }
+                }
+
+                if(cmds[1] == "network"){
+                    var RIP = nodeConfig.Routing.RIP;
+                    for(let i=0;i<RIP.length;i++){
+                        if(RIP[i].network_address == cmds[2]){
+                            RIP.splice(i,1);
+                        }
+                    }
+                }
+            },
+            
+            //设置端口mode(模式)
+            setMode:function (a,b,c) {
+                if(a == "mode" & c==null){
+                    if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                        let module = new Array(nodeConfig.moduleNum);
+                        let v = nodeConfig.vlanDatabse.vlan;
+                        for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                            var num = "module" + i;
+                            module[i] = nodeConfig[num];
+                            let m = module[i];
+                            for (let j in m) {
+                                if (m[j].name == cENet) {
+                                    if(b == "access" || b=="trunk"){
+                                        if(b == "access" ){
+                                            m[j].mode = b;
+                                            m[j].vlan = v[0].No;
+                                            return "true";
+                                        }else {
+                                            m[j].mode = b;
+                                            m[j].vlan = "";
+                                            return "true";
+                                            for(let i=0;i<v.length;i++){
+                                                if(m[j].vlan == ""){
+                                                    m[j].vlan += v[i].No;
+                                                }else {
+                                                    m[j].vlan +=  ";"+v[i].No;
+                                                }
+                                            }
+                                        }
+
+
+                                    }
+
+                                }
+                            }
+                            /*console.log(own.ethernetMenu.html());*/
+                        }
+                        return "no found"
+                    }
+                }
+                if(a == "access" & b =="vlan" & net.isPositiveInteger(c) & !net.isVlanHas(c)){
+                    if (nodeConfig.moduleNum > 0 && nodeConfig.portNum > 0) {
+                        let module = new Array(nodeConfig.moduleNum);
+                        for (var i = 0; i < nodeConfig.moduleNum; i++) {
+                            var num = "module" + i;
+                            module[i] = nodeConfig[num];
+                            let m = module[i];
+                            for (let j in m) {
+                                if (m[j].name == cENet) {
+                                    m[j].mode = "access";
+                                    /*if(m[j].vlan == ""){
+                                        m[j].vlan += ""+c;
+                                    }else{
+                                        m[j].vlan += ";"+c;
+                                    }*/
+                                    m[j].vlan =c;
+                                    return "true";
+                                }
+                            }
+                            /*console.log(own.ethernetMenu.html());*/
+                        }
+                        return "no found"
+                    }
+                }
+
+
+            },
+            setRipNetWork:function (network) {
+                 if(net.isValidIP(network)){
+                     let ripi = {
+                         network_address : network
+                     }
+                     nodeConfig.Routing.RIP.push(ripi);
+                 }
+
+            },
+
+
+            //校验IP地址
+            isValidIP: function (ip) {
+                var reg = /^(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])\.(\d{1,2}|1\d\d|2[0-4]\d|25[0-5])$/
+                return reg.test(ip);
+            },
+
+            //ping
+            ping:function(term,tIp,mIp){
+                term.echo("来自 192.168.1.1 的回复: 字节=32 时间=1ms TTL=64");
+            },
+
+
+
+
+    }
+
+
+
+        function sp(Strings){
+            var String = Strings.split(" ");
+            var stack = [];
+            for(let i=0;i<String.length;i++){
+                for(let j=0;j<s1.length;j++){
+                    s1.value.search(/String[i]/);
+                }
+            }
+
+        }
+
+        if(currentNode.elementType == "RouterNode"){
+            $('body').terminal(function(command, term) {
+
+                //当前模式：用户模式
+                if (command == '?') {
+                    term.echo("available commands are ？");
+                }else if(command == 'se'){
+                    var s =net.tenToTwo(192,8);
+                    let a = "0";
+                    let b = "1";
+                    let c1 = a&b;
+                    let c2 = b&b;
+                    let c3 = a&a;
+                    let u1 = net.ipTo2("192.168.1.0");
+                    let u2 = net.ipTo2("255.255.255.0");
+                    let u3 = net.yu(u1,u2);
+                    let tt = net.checkSameNet("192.168.2.8","255.255.255.0","192.168.1.8","255.255.255.0");
+                    let ttt = net.cNetByIpandMask("192.168.1.1","255.255.255.0");
+                    /*var p = net.checkSameNet("192.168.1.1","255.255.255.0","192.168.1.2","255.255.255.0")*/
+                    if(ttt){
+                        term.echo(ttt.netip+"--"+ttt.num);
+                    }else {
+                        term.echo("0");
+                    }
+
+                }else if (command == 'enable'){
+                    term.push(function(command, term) {
+                        //当前模式：特权模式
+                        if (command == '?') {
+                            term.echo('available commands are ？');
+                        }else if(command == 'exit'){
+                            term.pop();
+                        }else if(command == 'conf t' || command == "configure terminal"){
+                            term.push(function(command, term) {
+                                //当前模式：全局配置模式
+
+                                let cmdss = net.selfeveal(command);
+                                if(cmdss[0] == "interface" & cmdss[1] != null & cmdss[2] != null){
+
+                                    let b = net.setethernet(cmdss[1],cmdss[2]);
+                                    if(b == "true"){
+                                        term.push(function(command, term) {
+                                            //当前模式：接口配置模式
+
+                                            let cmdss = net.selfeveal(command);
+                                            if(cmdss[0] == "ip" & cmdss[1] != null & cmdss[2] != null & cmdss[3] != null){
+                                                var c = net.ipAddress(cmdss[1],currentNode,cENet,cmdss[2],cmdss[3]);
+
+                                                if(c != "true"){
+                                                    term.echo('unknown command ：' + c);
+                                                }
+                                            }else if(cmdss[0] == "switchport"){
+                                                var c = net.setMode(cmdss[1],cmdss[2],cmdss[3]);
+
+                                                if(c != "true"){
+                                                    term.echo('unknown command ：' + c);
+                                                }
+
+                                            }else if(command == "no shutdown" || command == "shutdown"){
+                                                net.shut(command);
+                                            } else if(command == 'exit'){
+                                                term.pop();
+                                            }else {
+                                                term.echo('unknown command ' + command);
+                                            }
+
+                                        }, {
+                                            name: 'config-if',
+                                            prompt: hostName+'(config-if)#'
+                                        });
+                                    }else{
+                                        term.echo('not fuound ：' + command);
+                                    }
+
+                                }else if(cmdss[0] == "vlan" & net.isPositiveInteger(cmdss[1])){
+                                    if(net.isVlanHas(cmdss[1])){
+                                        //创建vlan
+                                        net.addVlan(cmdss[1]);
+
+                                        term.push(function(command, term) {
+                                            //当前模式：vlan配置模式
+                                            let cmdss = net.selfeveal(command);
+
+                                            if(cmdss[0] =="name" & cmdss[1] != null & cmdss[2] == null){
+                                                net.setVlanName(cVlan,cmdss[1]);
+                                            }else if(command == 'exit'){
+                                                cVlan = "";
+                                                term.pop();
+                                            }else{
+                                                term.echo('unknown command ' + command);
+                                            }
+
+                                        }, {
+                                            name: 'config-vlan',
+                                            prompt: hostName+'(config-vlan)#'
+                                        });
+                                    }else{
+                                        term.echo('VLAN No has used' + cmdss[1]);
+                                    }
+                                }else if(cmdss[0] == "ip" & cmdss[1] == "route" & cmdss[2] != null & cmdss[3] != null &cmdss[4] != null){
+                                    if(cmdss[5] == null){
+                                        var k = net.ipRoute(cmdss[2],cmdss[3],cmdss[4]);
+                                    }else{
+                                        var k = net.ipRoute(cmdss[2],cmdss[3],cmdss[4],cmdss[5]);
+                                    }
+
+                                    if(k != "true"){
+                                        term.echo(k);
+                                    }
+                                }else if(command == "router rip"){
+                                    //动态路由模式
+                                    term.push(function(command, term) {
+                                        //当前模式：vlan配置模式
+                                        let cmdss = net.selfeveal(command);
+                                        if(cmdss[0]=="network" & cmdss[2] == null){
+                                            net.setRipNetWork(cmdss[1]);
+                                        }else if(command == 'exit'){
+                                            term.pop();
+                                        }else if(cmdss[0] == "no" & cmdss[1] == "network"){
+                                            net.deletCmd(command);
+                                        }else{
+                                            term.echo('unknown command ' + command);
+                                        }
+
+
+                                    }, {
+                                        name: 'config-router',
+                                        prompt: hostName+'(config-router)#'
+                                    });
+
+                                }else if(cmdss[0] == "no"){
+                                    net.deletCmd(command);
+                                }else if(command == 'exit'){
+                                    term.pop();
+                                }else{
+                                    term.echo('unknown command ' + command);
+                                }
+
+                            }, {
+                                name: 'config',
+                                prompt: hostName+'(config)#'
+                            });
+                        }else {
+                            term.echo('unknown command ' + command);
+                        }
+                    }, {
+                        prompt: hostName+'#',
+                        name: 'privileged'
+                    });
+                }else {
+                    term.echo("unknow command " + command);
+                }
+
+            }, {
+                greetings: "Press RETURN to get started!",
+                name: 'user',
+                prompt: hostName+'>',
+                onBlur: function() {
+                    // prevent loosing focus
+                    return false;
+                }
+            });
+        }
+
+
+        if(currentNode.elementType == "SwitchNode"){
+            $('body').terminal(function(command, term) {
+
+                //当前模式：用户模式
+                if (command == '?') {
+                    term.echo("available commands are ？");
+                }else if(command == 'se'){
+                    nodeConfig.module0.fastethernet0.IP_Address = "182.12.3.1"
+                    term.echo("11111111");
+                }else if (command == 'enable'){
+                    term.push(function(command, term) {
+                        //当前模式：特权模式
+                        if (command == '?') {
+                            term.echo('available commands are ？');
+                        }else if(command == 'exit'){
+                            term.pop();
+                        }else if(command == 'conf t' || command == "configure terminal"){
+                            term.push(function(command, term) {
+                                //当前模式：全局配置模式s
+
+                                let cmdss = net.selfeveal(command);
+                                if(cmdss[0] == "interface" & cmdss[1] != null & cmdss[2] != null){
+
+                                    let b = net.setethernet(cmdss[1],cmdss[2]);
+                                    if(b == "true"){
+                                        term.push(function(command, term) {
+                                            //当前模式：接口配置模式
+
+                                            let cmdss = net.selfeveal(command);
+                                            if(cmdss[0] == "ip" & cmdss[1] != null & cmdss[2] != null & cmdss[3] != null){
+                                                var c = net.ipAddress(cmdss[1],currentNode,cENet,cmdss[2],cmdss[3]);
+
+                                                if(c != "true"){
+                                                    term.echo('unknown command ：' + c);
+                                                }
+                                            }else if(cmdss[0] == "switchport"){
+                                                var c = net.setMode(cmdss[1],cmdss[2],cmdss[3]);
+
+                                                if(c != "true"){
+                                                    term.echo('unknown command ：' + c);
+                                                }
+
+                                            }else if(command == "no shutdown" || command == "shutdown"){
+                                                net.shut(command);
+                                            } else if(command == 'exit'){
+                                                term.pop();
+                                            }else {
+                                                term.echo('unknown command ' + command);
+                                            }
+
+                                        }, {
+                                            name: 'config-if',
+                                            prompt: hostName+'(config-if)#'
+                                        });
+                                    }else{
+                                        term.echo('not fuound ：' + command);
+                                    }
+                                }else if(cmdss[0] == "vlan" & net.isPositiveInteger(cmdss[1])){
+                                    if(net.isVlanHas(cmdss[1])){
+                                        //创建vlan
+                                        net.addVlan(cmdss[1]);
+
+                                        term.push(function(command, term) {
+                                            //当前模式：vlan配置模式
+                                            let cmdss = net.selfeveal(command);
+
+                                            if(cmdss[0] =="name" & cmdss[1] != null & cmdss[2] == null){
+                                                net.setVlanName(cVlan,cmdss[1]);
+                                            }else if(command == 'exit'){
+                                                cVlan = "";
+                                                term.pop();
+                                            }else{
+                                                term.echo('unknown command ' + command);
+                                            }
+
+                                        }, {
+                                            name: 'config-vlan',
+                                            prompt: hostName+'(config-vlan)#'
+                                        });
+                                    }else{
+                                        term.echo('VLAN No has used' + cmdss[1]);
+                                    }
+                                }else if(command == 'exit'){
+                                    term.pop();
+                                }else{
+                                    term.echo('unknown command ' + command);
+                                }
+
+                            }, {
+                                name: 'config',
+                                prompt: hostName+'(config)#'
+                            });
+                        }else {
+                            term.echo('unknown command ' + command);
+                        }
+                    }, {
+                        prompt: hostName+'#',
+                        name: 'privileged'
+                    });
+                }else {
+                    term.echo("unknow command " + command);
+                }
+
+            }, {
+                greetings: "Press Switch to get started!",
+                name: 'user',
+                prompt: hostName+'>',
+                onBlur: function() {
+                    // prevent loosing focus
+                    return false;
+                }
+            });
+        }
+
+        if(currentNode.elementType == "HostNode"){
+            $('body').terminal(function(command, term) {
+
+                //当前模式：用户模式
+                let cmdss = net.selfeveal(command);
+                if (command == '?') {
+                    term.echo("available commands are ？");
+                }else if(cmdss[0] == "ip" & cmdss[1] != null & cmdss[2] != null & cmdss[3] != null){
+                    cENet = "fastethernet0";
+                    var c = net.ipAddress(cmdss[1],currentNode,cENet,cmdss[2],cmdss[3],cmdss[4]);
+
+                    if(c != "true"){
+                        term.echo('unknown command ：' + c);
+                    }
+                }else if(command == "ipconfig"){
+                    term.echo('IPv4 地址 . . . . . . . . . . . . :' + nodeConfig.module0.fastethernet0.IP_Address);
+                    term.echo('子网掩码  . . . . . . . . . . . . :' + nodeConfig.module0.fastethernet0.SubNet_Mask);
+                    term.echo('默认网关. . . . . . . . . . . . . :' + nodeConfig.module0.fastethernet0.Default_Gateway);
+                }else if(cmdss[0] == "ping" & net.isValidIP(cmdss[1])){
+                    var e = currentNode.config.module0.fastethernet0;
+
+                    let netip = net.cNetByIpandMask(e.IP_Address,e.SubNet_Mask).netip;
+                    let linkstack = [];
+                    let linkstack1 = [];
+                    let count = 4;
+                    let ms = [];
+                    term.echo("正在 Ping "+cmdss[1]+" 具有 32 字节的数据:");
+                    term.set_prompt("");
+                    var interval2 = setInterval(function () {
+
+                        var begin=new Date().getTime();
+                        let gnode  = find(currentNode,e,cmdss[1],e.IP_Address,e.IP_Address,e.Mac_Address,e.Default_Gateway,e.SubNet_Mask,"",netip,linkstack);
+                        if(gnode){
+                            /*console.log("-1----"+linkstack);*/
+                            /*term.echo('请求报文到达:  目标设备类型（'+ gnode.n.elementType+')'+' & 目标ip（'+gnode.e.IP_Address+')');*/
+                            let netip2 = net.cNetByIpandMask(gnode.e.IP_Address,gnode.e.SubNet_Mask).netip;
+
+                            let twoNode = find(gnode.n,gnode.e,e.IP_Address,gnode.e.IP_Address,gnode.e.IP_Address,gnode.e.Mac_Address,gnode.e.Default_Gateway,gnode.e.SubNet_Mask,"",netip2,linkstack1);
+                            if(twoNode){
+                                /*term.echo('收到应答报文:  本地设备类型（'+ twoNode.n.elementType+')'+' & 本机ip（'+twoNode.e.IP_Address+')');
+*/
+                                var end=new Date().getTime();;
+                                var time=end-begin;
+
+                                /*var interval2 = setInterval(function () {
+                                        for (let i=0;i<linkstack1.length;i++){
+                                            linkstack1[i].strokeColor = '255,255,0'
+
+                                        }
+                                        setTimeout(function () {
+                                            for (let i=0;i<linkstack1.length;i++){
+                                                linkstack1[i].strokeColor = '0,0,0'
+                                                if(linkstack1[i].lineType =="DECLine"){
+                                                    linkstack1[i].strokeColor = '255,0,0'
+                                                }
+
+                                            }
+
+                                        },1000);
+
+                                    },2000);
+
+                                setTimeout(function() {window.clearInterval(interval2);},10000);*/
+
+
+
+
+                                if(twoNode.n.elementType !=null & gnode.n.elementType !=null){
+                                    term.echo('来自 '+gnode.e.IP_Address+' 的回复: 字节=32 时间='+time+'ms TTL=64');
+                                    ms.push(time);
+                                    count--;
+                                }else {
+                                    term.echo('timeout');
+                                }
+                            }else {
+                                term.echo('应答报文未收到');
+                            }
+                            parent.editor.utils.refrash(linkstack1);
+                        }else {
+                            term.echo('请求报文未到达');
+                        }
+
+                     },500);
+
+                    setTimeout(function() {
+                        window.clearInterval(interval2);
+
+                        term.echo(cmdss[1]+" 的 Ping 统计信息:");
+                        let have = 4-count;
+                        let lv = count/4;
+                        term.echo("    数据包: 已发送 = 4，已接收 = "+have+"，丢失 = "+count+" ("+100*lv+"% 丢失)，");
+                        term.echo("往返行程的估计时间(以毫秒为单位):");
+
+                        let max = 0;
+                        let min = 0;
+                        let sum = 0;
+                        for(let i=0;i<ms.length;i++){
+                            if(i==0){
+                                max = ms[0];
+                                min = ms[0];
+                            }
+
+                            if(ms[i]>max){
+                                max = ms[i];
+                            }
+                            if(ms[i]<min){
+                                min = ms[i];
+                            }
+                            sum+=ms[i];
+                        }
+                        let val = sum/4
+                        term.echo("    最短 = "+min+"ms，最长 = "+max+"ms，平均 = "+val+"ms");
+                        term.set_prompt(hostName+'>');
+                        },2000);
+
+
+
+                }else {
+                    term.echo('unkown command'+command);
+                }
+
+            }, {
+                greetings: "Press host to get started!",
+                name: 'user',
+                prompt: hostName+'>',
+                onBlur: function() {
+                    // prevent loosing focus
+                    return false;
+                }
+            });
+        }
+
+
+
+    });
+
+/*    setInterval(function () {
+        /!*if(editor.currentNode !=null){
+            console.log(editor.currentNode);
+        }*!/
+        console.log(parent.editor.currentNode);
+    }, 10000);*/
+
+</script>
+</body>
+</html>
+
+
+
+<!--
+if (command == '?') {
+term.echo("available commands are ？");
+}else if(command == 'se'){
+nodeConfig.module0.fastethernet0.IP_Address = "182.12.3.1"
+term.echo("11111111");
+}else if (command == 'enable'){
+term.push(function(command, term) {
+//当前模式：特权模式
+if (command == '?') {
+term.echo('available commands are ？');
+}else if(command == 'conf t'){
+term.push(function(command, term) {
+//当前模式：全局配置模式
+let cmdss = net.selfeveal(command);
+if(cmdss[0] == "interface" & cmdss[1] != null & cmdss[2] != null){
+net.setethernet(cmdss[1],cmdss[2]);
+term.push(function(command, term) {
+//当前模式：接口配置模式
+let cmdss = net.selfeveal(command);
+if(cmdss[0] = "ip" & cmdss[1] != null & cmdss[2] != null & cmdss[3] != null){
+var c = net.ipAddress(cmdss[1],currentNode,cENet,cmdss[2],cmdss[3]);
+if(c != "true"){
+term.echo('unknown command ：' + c);
+}
+}
+
+}, {
+name: 'config-if',
+prompt: hostName+'(config-if)#'
+});
+}else{
+term.echo('unknown command ' + command);
+}
+
+}, {
+name: 'config',
+prompt: hostName+'(config)#'
+});
+}else {
+term.echo('unknown command ' + command);
+}
+}, {
+prompt: hostName+'#',
+name: 'privileged'
+});
+}else {
+term.echo("unknow command " + command);
+}-->

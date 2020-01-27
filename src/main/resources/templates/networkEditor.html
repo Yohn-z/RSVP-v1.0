@@ -1,0 +1,829 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <meta charset="utf-8"/>
+    <title>RSVP路由交换虚拟平台</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <link rel="icon" href="icon/topo.png" type="img/x-ico" />
+    <link href="css/bootstrap.css" type="text/css" rel="stylesheet" />
+    <link href="css/bootstrap-responsive.css" type="text/css" rel="stylesheet" />
+    <link id="theme" rel="stylesheet" type="text/css" href="themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="themes/icon.css">
+    <link id="flowPath" href="css/editor.css" type="text/css" rel="stylesheet" />
+    <link href="css/header.css" type="text/css" rel="stylesheet" />
+    <link href="css/main_topology.css" type="text/css" rel="stylesheet" />
+	<link href="css/jquery.ipinput.css" type="text/css" rel="stylesheet"/>
+    <script type="text/javascript">
+        var id = null
+        var url = location.toString();
+        var urlList = url.split("?");
+        if (urlList.length==2){
+            var aId = urlList[1];
+            var find = aId.split("=");
+            id = find[1];
+        }
+        console.log(id)
+
+    </script>
+    <!-- fakeloader css 页面加载遮罩-->
+    <script src="js/jquery-1.10.2.js" type="text/javascript"></script>
+    <script src="js/bootstrap.min.js"></script>
+    <script src="layer/layer.js"></script>
+
+    <link href="fakeloader/fakeloader.css" rel="stylesheet">
+    <script src="fakeloader/fakeloader.min.js"></script>
+    <style type="text/css">
+        .style{width: 700px;margin: auto;font-size: 18px;color: cadetblue;}
+        .tooltip {
+            font-size: 12px;
+            font-family: \5b8b\4f53;
+            line-height: 1.5;
+            position: absolute;
+            padding: 5px;
+            z-index: 100003;
+            opacity: .8
+        }
+
+        .tipsy-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            line-height: 0;
+            /*border: 6px dashed #FFA500;*/
+            top: 0;
+            left: 20%;
+            margin-left: -5px;
+            border-bottom-style: solid;
+            border-top: 0;
+            border-left-color: transparent;
+            border-right-color: transparent
+        }
+
+        .tipsy-arrow-n {
+            border-bottom-color: #FFA500;
+        }
+
+        .tipsy-inner {
+            /*background-color: #FFA500;*/
+            background-color: #333;
+            color: #fff;
+            max-width: 200px;
+            padding: 5px 8px 4px 8px;
+            text-align: center;
+            border-radius: 3px
+        }
+    </style>
+
+</head>
+
+<body  class="easyui-layout bodySelectNone" id="body" onselectstart="return false" ng-app="rssp" ng-controller="regController" ng-init="isLogin()">
+
+<div class="fakeloader"></div>
+<script>
+    $(".fakeloader").fakeLoader({
+        timeToHide:60000,
+        bgColor:"#fff",
+        spinner:"spinner3"
+    });
+</script>
+
+<div id="title" region="north" split="false" border="false" class="titleTool" style="min-height: 80px;background: #f7f7f7;border: 0;">
+    <div id="header" class="navbar" style="background: #f7f7f7;border: 0;min-height: 80px;">
+        <div class="navbar-inner" style="background: #f7f7f7;border: 0;min-height: 80px;margin-left:5px">
+            <!-- logo -->
+            <div style="width: 60%;height: 30px;float: left;">
+                 <a id="inputtittle1" class="brand hidden-phone" style="float:left;color: #000;margin-left: -10px;margin-top: 8px;font-size: 18px" href="#">未命名文件</a>
+                <input id="inputtittle2" type="text" class="brand hidden-phone" style="display: none;float:left;color: #000;width:300px;height:24px;margin-left: -2px;font-size: 15px" value="未命名文件" />
+             </div>
+
+
+
+            <div style="float: left;margin-top:10px;width: 60%;">
+                <a style="" href="./home">
+                    <img alt="返回" title="返回" width="20" height="20" src="images/topology/backindex.png"/>
+                </a>
+                <!--<input id="queryText">-->
+     <!--           <img alt="合并" title="合并" width="24" height="24" src="images/topology/merge.fw.png" onClick="editor.utils.toMerge()" class="buttonStyle" />
+                  <img alt="拆分" title="拆分" width="24" height="24" src="images/topology/split.fw.png" onClick="editor.utils.toSplit()" class="buttonStyle"/>-->
+                  <img alt="全屏查看"	title="全屏查看" width="17" height="17" src="images/topology/fullScreenView.png" onClick="editor.utils.showInFullScreen(editor.stage.canvas,'RequestFullScreen');" class="buttonStyle"/>
+                  <img alt="居中显示"	title="居中显示" width="17" height="17" src="images/topology/toMiddleWidth.fw.png" onClick="editor.utils.showInCenter()" class="buttonStyle"/>
+                  <img alt="预览"	title="预览" width="17" height="17" src="images/topology/preview.fw.png" onClick="editor.utils.showPic();" class="buttonStyle"/>
+                  <img alt="保存"	title="保存" width="17" height="17" src="images/topology/save.fw.png" onClick="editor.utils.savetopo()" class="buttonStyle"/>
+                  <img alt="复制"	title="复制" width="17" height="17" src="images/topology/copy.fw.png" onClick="editor.utils.cloneSelectedNodes()" class="buttonStyle"/>
+                  <img alt="删除"	title="删除" width="17" height="17" src="images/topology/delete.fw.png" onClick="editor.utils.deleteSelectedNodes();" class="buttonStyle"/>
+                  <img alt="清空"	title="清空" width="17" height="17" src="images/topology/trash.fw.png" onClick="editor.utils.clearAll();" class="buttonStyle"/>
+                  <img alt="放大"	title="放大" width="17" height="17" src="images/topology/zoomBig.png" onclick="editor.utils.scalingBig()" class="buttonStyle"/>
+                  <img alt="缩小"   title="缩小" width="17" height="17" src="images/topology/zoomSmall.png"  onclick="editor.utils.scalingSmall()" class="buttonStyle"/>
+                 <!--<img alt="设置"   title="设置" width="17" height="17" src="images/topology/set.png"  onclick="" class="buttonStyle"/>-->
+
+            </div>
+            <div style="float: right;margin-top:-10px;width: 20%;">
+                <button class="btn btn-small"  id="export"  data-toggle="modal" data-target="#myModal">下载</button>
+                <input type="button" class="btn btn-small" id="import" value="导入"/>
+                <input type="file" class="btn btn-small" id="importfile" style="display: none" value="导入"/>
+                <button class="btn btn-small"  id="set"  data-toggle="modal" data-target="#mySetModal">设置</button>
+                <a class="btn btn-small" href="./graphEditor">graphEditor</a>
+                <img src="{{rssp_current_user.head}}" width="30" height="30">
+                <span style="font-size: 15px;" ng-bind="rssp_current_user.name"></span>
+            </div>
+            <script>
+
+                $("#importfile").change(function () {
+                    /*alert("该功能测试中。。。");*/
+                    console.log($("#importfile")[0].files[0]);
+                    var reader = new FileReader();
+                    //将文件以文本形式读入页面
+                    reader.readAsText($("#importfile")[0].files[0]);
+                    reader.onload=function(f){
+                        /*console.log(this.result);*/
+                        var re = JSON.parse(this.result);
+                        console.log(re.templateId+"--"+re.topologyJson+"--"+re.name);
+                      /*  editor.stage.childs.forEach(function(s){
+                            s.clear();
+                        });
+                        editor.stage.clear();*/
+                       /* editor.stage.clear();*/
+                        if(!re.topologyJson){
+                            alert("加载拓扑编辑器失败!");
+                            return;
+                        }
+                        editor.templateName.html(re.name);
+                        JTopo.replaceStageWithJson(re.topologyJson);
+
+                    }
+
+                });
+
+            </script>
+
+        </div>
+    </div>
+
+
+</div>
+<div id="leftContent" region="west" split="true" title="设备区" class="leftContent">
+
+    <div class="easyui-accordion overflowHidden" fit="true" border="false">
+        <div title="路由器" class="flowImag" style="background-color:#FFFFFF;" >
+            <table class="tp_table" width="100%" >
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/router.png" class="nodeStyle"/>
+                            <br><span>router</span>
+                        </div>
+                    </td>
+                </tr>
+               <!-- <tr>
+                    <td width="100%" align="center">
+                        <div id="cisco_10700" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/cisco_10700.png" class="nodeStyle"/>
+                            <br><span>cisco_10700</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="cisco_7500" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/cisco_7500.png" class="nodeStyle"/>
+                            <br><span>cisco_7500</span>
+                        </div>
+                    </td>
+                </tr>-->
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="content_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/content_router.png" class="nodeStyle"/>
+                            <br><span>content_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="IAD_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/IAD_router.png" class="nodeStyle"/>
+                            <br><span>IAD_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="ip_telephony_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/ip_telephony_router.png" class="nodeStyle"/>
+                            <br><span>ip_telephony_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="Cisco7505" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="ITP" src="icon/ITP.png" class="nodeStyle"/>
+                            <br><span>ITP</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="netflow_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/netflow_router.png" class="nodeStyle"/>
+                            <br><span>netflow_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="router_with_firewall" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/router_with_firewall.png" class="nodeStyle"/>
+                            <br><span>router_with_firewall</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="service_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/service_router.png" class="nodeStyle"/>
+                            <br><span>service_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="wavelength_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/wavelength_router.png" class="nodeStyle"/>
+                            <br><span>wavelength_router</span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="wireless_router" divType="mode" datatype="RT" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/wireless_router.png" class="nodeStyle"/>
+                            <br><span>wireless_router</span>
+                        </div>
+                    </td>
+                </tr>
+
+            </table>
+        </div>
+        <div title="交换机" class="flowImag" style="background-color:#FFFFFF;">
+            <table class="tp_table" width="100%" >
+                <tr><td width="100%" align="center">
+                    <div id="switch" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/switch.png" class="nodeStyle"/>
+                        <br><span>Ethernet switch</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="100BaseTHub" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/100BaseTHub.png" class="nodeStyle"/>
+                        <br><span>100 Base T Hub</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                <div id="access_server" divType="mode" datatype="SW" draggable="true">
+                    <div class="title">&nbsp;</div>
+                    <img name="backGroundImg" src="icon/access_server.png" class="nodeStyle"/>
+                    <br><span>access_server</span>
+                </div>
+
+            </td></tr>
+                <tr><td width="100%" align="center">
+                <div id="AKA_Data_Center_Switch" divType="mode" datatype="SW" draggable="true">
+                    <div class="title">&nbsp;</div>
+                    <img name="backGroundImg" src="icon/AKA_Data_Center_Switch.png" class="nodeStyle"/>
+                    <br><span>AKA_Data_Center_Switch</span>
+                </div>
+
+            </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="Center_Switch" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/big_switch.png" class="nodeStyle"/>
+                        <br><span>Center_Switch</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="cisco_5500" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/cisco_5500.png" class="nodeStyle"/>
+                        <br><span>cisco_5500</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="Content_Switch" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/Content_Switch.png" class="nodeStyle"/>
+                        <br><span>Content_Switch</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="workgroup_switch" divType="mode" datatype="SW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/workgroup_switch.png" class="nodeStyle"/>
+                        <br><span>workgroup_switch</span>
+                    </div>
+
+                </td></tr>
+            </table>
+        </div>
+        <div title="终端设备" class="flowImag" style="background-color:#FFFFFF;">
+            <table class="tp_table" width="100%" >
+                <tr><td width="100%" align="center">
+                    <div id="ClientVM" divType="mode" datatype="VMH" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/pc.png" class="nodeStyle"/>
+                        <br><span>虚拟主机</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="ServerVM" divType="mode" datatype="VMH" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/server.png" class="nodeStyle"/>
+                        <br><span>服务器</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="WebServerVM" divType="mode" datatype="VMH" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/laptop.png" class="nodeStyle"/>
+                        <br><span>笔记本</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="MailServerVM" divType="mode" datatype="VMH" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/phone.png" class="nodeStyle"/>
+                        <br><span>电话</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="FileServerVM" divType="mode" datatype="VMH" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/printer.png" class="nodeStyle"/>
+                        <br><span>打印机</span>
+                    </div>
+
+                </td></tr>
+            </table>
+
+        </div>
+
+        <div title="安全" class="flowImag" style="background-color:#FFFFFF;">
+            <table class="tp_table" width="100%" >
+                <tr><td width="100%" align="center">
+                    <div id="Firewall" divType="mode" datatype="FW" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/tpIcon_4.png" class="nodeStyle"/>
+                        <br><span>防火墙</span>
+                    </div>
+
+                </td></tr>
+            </table>
+
+        </div>
+
+        <div title="线缆" style="background-color:#FFFFFF;" id="basicGraph">
+
+            <table class="tp_table" width="100%">
+                <tr><td width="100%" align="center">
+                    <div id="baseLine1" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="simpleLine" name="backGroundImg" src="images/nline1.png" class="nodeStyle" style="border-radius:5px" />
+                        <br><span>直通线</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="baseLine2" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="crossLine" name="backGroundImg" src="images/nline2.png" class="nodeStyle"  style="border-radius:5px" />
+                        <br><span>交叉线</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="baseLine3" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="DECLine" name="backGroundImg" src="images/nline3.png" class="nodeStyle"  style="border-radius:5px" />
+                        <br><span>DCE串口线</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="baseLine4" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="lightline" name="backGroundImg" src="images/lightline.png" class="nodeStyle"  style="border-radius:5px" />
+                        <br><span>光纤</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="baseLine5" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="consoleLine" name="backGroundImg" src="images/consoleLine.png" class="nodeStyle"  style="border-radius:5px" />
+                        <br><span>配置线</span>
+                    </div>
+                </td></tr>
+
+                <!--<tr><td width="100%" align="center" >
+                    <div id="baseLine2" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="foldLineH" name="backGroundImg" src="images/3t.png" class="nodeStyle"/>
+                        <br><span>折线(横向)</span>
+                    </div>
+                </td></tr>
+
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine5" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="foldLineV" name="backGroundImg" src="images/3th.png" class="nodeStyle"/>
+                        <br><span>折线(纵向)</span>
+                    </div>
+                </td></tr>
+
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine3" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="flexLineH" name="backGroundImg" src="images/1th.png" class="nodeStyle"/>
+                        <br><span>二次折线(横向)</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine4" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="flexLineV" name="backGroundImg" src="images/1t.png" class="nodeStyle"/>
+                        <br><span>二次折线(纵向)</span>
+                    </div>
+                </td></tr>-->
+            </table>
+        </div>
+        <div title="图形" class="flowImag" style="background-color:#FFFFFF;">
+            <table class="tp_table" width="100%" >
+                <tr><td width="100%" align="center">
+                    <div id="Cloud" divType="mode" datatype="CL" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/network_cloud.png" class="nodeStyle"/>
+                        <br><span>云</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="House" divType="mode" datatype="HO" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/tpIcon_1.png" class="nodeStyle"/>
+                        <br><span>房屋</span>
+                    </div>
+
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="Text" divType="mode" datatype="TX" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/Text.png" class="nodeStyle"/>
+                        <br><span>文本</span>
+                    </div>
+
+                </td></tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="tip" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/tip.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="3b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/3b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="5b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/5b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="6b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/6b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="f" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/f.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="l4b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/l4b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="o" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/o.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+
+        </div>
+    </div>
+</div>
+
+<div region="center" title='编辑区' id="contextBody" style="" class="mapContext bg">
+
+<canvas id="drawCanvas" class="mapContext1 bg">
+您的浏览器不支持HTML5!
+</canvas>
+
+
+    <textarea onkeydown="if(event.keyCode==13)this.blur();" style="display:none;width: 170px;height:40px;position: absolute;z-index: 9" id="deviceText"></textarea>
+    <!--<canvas id="canvas" style="position: absolute"></canvas>-->
+
+    <div id="nodeMainMenu" class="modeRight2" style="z-index: 9">
+        <div id="cmd" class="shellLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''" onclick="editor.showCmdWindow()" style="display: none"><span class="menuSpan">命令窗口</span></div>
+      <!--  <div class="applicationLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">应用布局</span></div>-->
+        <!--<div id="changeNodeText" class="nodeText"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">节点文字</span></div>-->
+        <div class="applicationLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''" onclick="editor.clearOldPanels(editor.currDataType);editor.createNewPanels(editor.currDataType,editor.templateId);"><span class="menuSpan">查看属性</span></div>
+        <div class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">修改节点文字</span></div>
+<!--        <div class="zoomBig"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">放大</span><span class="menuSpan_1">Shift+</span></div>
+        <div class="zoomSmall"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">缩小</span><span class="menuSpan_1">Shift-</span></div>-->
+        <div class="modeRightDelete"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">删除节点</span><span class="menuSpan_1">Delete</span></div>
+        <div class="modeRightShunShi"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顺时针旋转</span><span class="menuSpan_1">Shift+U</span></div>
+        <div class="modeRightNiShi"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">逆时针旋转</span><span class="menuSpan_1">Shift+I</span></div>
+
+<!--        <div class="modeRightCopy" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">复制节点(Shift+C)</span></div>
+        <div class="modeRightCancel"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">撤销(Shift+Z)</span></div>
+        <div class="modeRightRedo"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">重做(Shift+R)</span></div>-->
+    </div>
+    <div id="lineMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">添加描述</span></div>
+        <div class="modeRightDelete" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">删除连线</span></div>
+    </div>
+
+    <div id="nodeTextMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">修改节点文字</span></div>
+       <!-- <div id="justfyNodeText" class="nodeRightEdit" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">调整节点文字位置</span></div>-->
+    </div>
+
+    <div id="nodeTextPosMenu" class="modeRight2" style="z-index: 9">
+        <div class="theTopLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居左</span></div>
+        <div class="theTopCenter" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居中</span></div>
+        <div class="theTopRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居右</span></div>
+        <div class="theMiddleLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">中间居左</span></div>
+        <div class="center" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">居中</span></div>
+        <div class="theMiddleRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">中间居右</span></div>
+        <div class="theBottomLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居左</span></div>
+        <div class="theBottomCenter" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居中</span></div>
+        <div class="theBottomRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居右</span></div>
+    </div>
+
+    <div id="mainMenu" class="modeRight2" style="z-index: 9">
+        <div class="zoomBig"  onClick="editor.utils.scalingBig()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">放大</span><span class="menuSpan_1">Shift+</span></div>
+        <div class="zoomSmall"  onClick="editor.utils.scalingSmall()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">缩小</span><span class="menuSpan_1">Shift-</span></div>
+        <div class="modeRightClear"  onClick="editor.utils.clearAll();" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">清空</span><span class="menuSpan_1">Shift+Y</span></div>
+        <!--<div class="modeRightPrint"  onClick="editor.utils.showPic();" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">预览</span><span class="menuSpan_1">Shift+P</span></div>-->
+
+<!--        <div class="modeRightCenter"  onClick="editor.utils.showInCenter()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">居中显示</span><span class="menuSpan_1">Shift+G</span></div>
+        <div class="modeRightSave"  onClick="editor.saveToplogy(true)" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">保存</span><span class="menuSpan_1">Shift+S</span></div>-->
+        <div class="modeRightSetRule" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="ruleLineSpan">隐藏参考线</span><span class="menuSpan_1">Shift+L</span></div>
+        <div class="viewHelp" onclick="editor.showHelpWindow()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="showHelp">查看帮助</span></div>
+ <!--       <div class="modeRightFullScreen" onclick="editor.utils.showethernet()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">显示端口名</span></div>-->
+        <div class="viewJSON" onclick="window.open('jsonView.html', '当前拓扑结构JSON展示', '').document.write(editor.stage.toJson())" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="showJSON">查看JSON结构</span></div>
+    </div>
+
+    <div id="groupMangeMenu" class="modeRight2" style="z-index: 9">
+        <div id="newGroup" class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">新建分组</span></div>
+        <div id="alignGroup" class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">对齐方式</span></div>
+    </div>
+    <div id="groupAlignMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightMiddle"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">水平对齐</span></div>
+        <div class="modeTopMiddle"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">垂直对齐</span></div>
+    </div>
+
+    <div id="containerMangeMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightDel"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">拆分</span></div>
+    </div>
+
+    <div id="layoutMenu" class="modeRight2" style="z-index: 9">
+        <div class="cancelTheLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">取消布局</span></div>
+        <div class="packetLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">分组布局</span></div>
+        <div class="theTreeLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">树形布局</span></div>
+        <div class="circularLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">圆形布局</span></div>
+    </div>
+    <div id="ethernet" class="modeRight2" style="z-index: 9">
+
+    </div>
+
+</div>
+
+<div id = "rightBody" region="east" split="true"  title="属性区" class="history" style="width: 350px">
+    <div  id="mainControl" class="easyui-accordion overflowHidden" fit="true" border="false">
+
+    </div>
+</div>
+
+<div id="settings">系统设置</div>
+</body>
+
+<div id="loading">正在处理...</div>
+
+<div id="help">帮助信息...</div>
+<!-- 隐藏域用于获取moduleId和envTemplateId -->
+<input type="hidden" id="nodeModuleIdHidden" >
+<input type="hidden" id="nodeEnvTemplateIdHidden">
+<!--保存当前编辑层的父层-->
+<input type="hidden" id="parentLevel" value="0">
+
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">下载选择</h4>
+            </div>
+            <div id="selectfile">
+                <div class="radio" style="margin:20px 0 20px 20px">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked> 下载图片（.png）
+                    </label>
+                </div>
+                <div class="radio" style="margin:20px 0 20px 20px">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="2">json文件（.json）
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button id="downfile" type="button" class="btn btn-primary">确定</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+<!-- set模态框（Modal） -->
+<div class="modal fade" id="mySetModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title"><img src="images/topology/set.png"/>&nbsp;设置</h4>
+            </div>
+            <div style="margin: 10px;padding-bottom: 5px;">
+               <span>设置铅笔颜色：</span><input type="color" style="margin-top: 2px" id="color1" value="画笔颜色" /><br/>
+                <span>设置铅笔粗细：</span><input type="number" style="margin-top: 2px" id="number1" value="2" />
+
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button type="button" class="btn btn-primary">确定</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+</body>
+<script src="js/filesaver.js" charset="utf-8" type="text/javascript" ></script>
+
+<script src="js/config.js" type="text/javascript" ></script>
+<script src="js/util.js" type="text/javascript" ></script>
+<script src="layer/layer.js"></script>
+<script src="js/jquery.easyui.min.js" type="text/javascript"></script>
+<script src="js/jtopo-0.4.8-dev.js" type="text/javascript" ></script>
+<script src="js/jeditor.js" type="text/javascript" ></script>
+<script type="text/javascript">
+
+    jQuery(document).ready(function () {
+        var sweetTitles = {
+            x: 10,
+            y: 20,
+            tipElements: "a,span,img,div ",
+            noTitle: false,
+            init: function() {
+                var noTitle = this.noTitle;
+                $(this.tipElements).each(function() {
+                    $(this).mouseover(function(e) {
+                        if (noTitle) {
+                            isTitle = true;
+                        } else {
+                            isTitle = $.trim(this.title) != '';
+                        }
+                        if (isTitle) {
+                            this.myTitle = this.title;
+                            this.title = "";
+                            var tooltip =
+                                "<div class='tooltip'><div class='tipsy-inner'>" + this.myTitle +
+                                "</div></div>";
+                            $('body').append(tooltip);
+                            $('.tooltip').css({
+                                "top": (e.pageY + 20) + "px",
+                                "left": (e.pageX - 20) + "px"
+                            }).show('fast');
+                        }
+                    }).mouseout(function() {
+                        if (this.myTitle != null) {
+                            this.title = this.myTitle;
+                            $('.tooltip').remove();
+                        }
+                    }).mousemove(function(e) {
+                        $('.tooltip').css({
+                            "top": (e.pageY + 20) + "px",
+                            "left": (e.pageX - 20) + "px"
+                        });
+                    });
+                });
+            }
+        };
+        $(function() {
+            sweetTitles.init();
+        });
+
+
+        //加载网络拓扑图
+        //editor.loadTopology();
+
+
+
+
+        /*var interval3 = setInterval(function () {*/
+
+
+       /* },1000);*/
+
+
+
+
+
+
+
+
+
+
+    });
+
+
+</script>
+<script src="angular/angular.min.js"></script>
+<script src="angular/app.js"></script>
+<script src="angular/service/regService.js"></script>
+<script src="angular/controller/regController.js"></script>
+
+<script>
+    $("#number1").val(editor.panLineWidth);
+
+
+    //加载完关闭
+    $(".fakeloader").fakeLoader({
+        timeToHide: 1,
+        bgColor: "#fff",
+        spinner: "spinner2"
+    });
+</script>
+</html>

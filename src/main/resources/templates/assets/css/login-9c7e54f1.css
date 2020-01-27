@@ -1,0 +1,397 @@
+body, html {
+    color: #000;
+    margin: 0;
+    overflow: hidden;
+    font: normal 13px arial, Microsoft Yahei !important
+}
+
+a {
+    font-size: inherit;
+    text-decoration: none;
+    color: #666;
+    cursor: pointer
+}
+
+.txt {
+    width: 90%;
+    padding: 4px 20px;
+    border-radius: 22px;
+    border: solid 1px #ccc;
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+    height: 3.6em;
+    outline: 0
+}
+
+.txt:focus {
+    border-color: #4386f5
+}
+
+.button {
+    background: #4386f5;
+    color: #fff;
+    padding: 6px 0;
+    height: 25px;
+    line-height: 25px;
+    border-radius: 5px;
+    width: 90%;
+    border-radius: 22px;
+    display: inline-block;
+    cursor: pointer
+}
+
+.page-con {
+    text-align: center;
+    width: 400px;
+    margin: 0 auto;
+    height: 362px;
+    position: absolute;
+    top: 50%;
+    margin-top: -181px;
+    left: 50%;
+    margin-left: -200px
+}
+
+.page-con .sep {
+    border-top: 1px solid #ddd;
+    height: 20px;
+    text-align: center
+}
+
+.page-con label {
+    color: #666;
+    display: inline-block;
+    padding: 0 10px;
+    background: #fff
+}
+
+.page-con .signup {
+    font-size: 12px;
+    margin-top: 19px;
+    color: #666;
+    text-align: left;
+    padding-left: 26px
+}
+
+.page-con .signup a {
+    color: #333
+}
+
+#bg-canvas {
+    position: absolute;
+    z-index: -1
+}
+
+#logo-text {
+    display: inline-block;
+    margin-left: 8px;
+    font-size: 35px;
+    vertical-align: 7px;
+    font-family: arial;
+    height: 60px;
+    text-shadow: 1px 1px 2px #bbb inset
+}
+
+#logo-text .logo-dot {
+    width: 68px;
+    height: 6px;
+    display: inline-block;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -34px;
+    margin-top: -3px;
+    display: none
+}
+
+#logo-text .logo-dot:after {
+    width: 6px;
+    background: #4386f5;
+    height: 6px;
+    display: inline-block;
+    position: absolute;
+    right: -4px;
+    border-radius: 50%;
+    content: ""
+}
+
+#logo-text label {
+    display: inline-block;
+    background: #4386f5;
+    border-radius: 50%;
+    color: #fff;
+    padding: 11px 8px;
+    margin-left: 6px;
+    position: relative;
+    box-shadow: 1px 1px 6px #ccc
+}
+
+.login-input {
+    position: relative
+}
+
+.login-input a {
+    position: absolute;
+    right: -42px;
+    top: 13px;
+    width: auto;
+    height: 20px;
+    line-height: 20px;
+    text-align: right;
+    color: #888;
+    z-index: 1
+}
+
+.weixin-con {
+    display: none;
+    padding: 15px;
+    background: #fff;
+    position: absolute;
+    z-index: 9;
+    width: 362px;
+    height: 410px;
+    left: 50%;
+    top: 50%;
+    margin-left: -181px;
+    margin-top: -205px;
+    text-align: center;
+    border-raidus: 5px;
+    box-shadow: 1px 1px 4px #ccc
+}
+
+.error-tip {
+    height: 30px;
+    line-height: 30px;
+    position: absolute;
+    right: 32px;
+    color: red;
+    bottom: 6px;
+    font-size: 12px;
+    z-index: 2
+}
+
+.success-tip {
+    position: absolute;
+    width: 194px;
+    top: 155px;
+    display: none;
+    right: 96px;
+    padding: 5px 8px;
+    border: 1px solid green;
+    border-radius: 3px;
+    box-shadow: 1px 1px 5px #d6e9c6;
+    background-color: #dff0d8;
+    color: #468847;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, .5)
+}
+
+.icons {
+    background: url(../images/login/login.png) no-repeat;
+    display: inline-block;
+    width: 42px;
+    height: 42px;
+}
+
+.icons.weixin {
+    background-position: 0 0;
+    background-size: 42px
+}
+
+.icons.qq {
+    background-position: 0 -85px;
+    background-size: 43px
+}
+
+.icons.weibo {
+    background-position: 0 -131px;
+    background-size: 44px
+}
+
+.icons.google {
+    background-position: 0 -45px;
+    background-size: 44px
+}
+
+.icons.somemore {
+    border-radius: 100%;
+    border: 1px solid #ddd;
+    background-position: -1px -165px;
+    background-size: 42px;
+    width: 38px;
+    height: 38px
+}
+
+.icons.somemore:hover {
+    -webkit-box-shadow: inset 0 0 1px rgba(0, 0, 0, .2);
+    -moz-box-shadow: inset 0 0 1px rgba(0, 0, 0, .2);
+    box-shadow: inset 0 0 1px rgba(0, 0, 0, .2);
+    cursor: pointer
+}
+
+.morelogo-con {
+    background-color: #fff;
+    padding: 10px;
+    position: absolute;
+    left: 249px;
+    opacity: 0;
+    top: 30px;
+    z-index: 3;
+    border-radius: 5px;
+    box-shadow: 0 1px 2px 0 rgba(0, 0, 0, .2);
+    -webkit-transition: all .3s ease-in-out;
+    -moz-transition: all .3s ease-in-out;
+    -ms-transition: all .3s ease-in-out;
+    -o-transition: all .3s ease-in-out;
+    transition: all .3s ease-in-out
+}
+
+.morelogo-con.popover {
+    opacity: 1;
+    top: 45px
+}
+
+.morelogo-con > span {
+    display: block;
+    font-size: 13px;
+    color: #3d474d
+}
+
+.morelogo-con .mingdao {
+    display: inline-block;
+    vertical-align: middle;
+    background-position: 0 -257px;
+    background-size: 44px;
+    margin-right: 11px
+}
+
+.rotate {
+    animation: .8s infinite rotate;
+    -webkit-animation: .8s infinite rotate;
+    -o-animation: .8s infinite rotate;
+    -moz-animation: .8s infinite rotate;
+    -ms-animation: .8s infinite rotate
+}
+
+@-webkit-keyframes rotate {
+    from {
+        -webkit-transform: rotate(0)
+    }
+    to {
+        -webkit-transform: rotate(360deg)
+    }
+}
+
+@-moz-keyframes rotate {
+    from {
+        -moz-transform: rotate(0)
+    }
+    to {
+        -moz-transform: rotate(360deg)
+    }
+}
+
+@-ms-keyframes rotate {
+    from {
+        -ms-transform: rotate(0)
+    }
+    to {
+        -ms-transform: rotate(360deg)
+    }
+}
+
+@-o-keyframes rotate {
+    from {
+        -o-transform: rotate(0)
+    }
+    to {
+        -o-transform: rotate(360deg)
+    }
+}
+
+@keyframes rotate {
+    from {
+        transform: rotate(0)
+    }
+    to {
+        transform: rotate(360deg)
+    }
+}
+
+.bind {
+    width: 600px;
+    margin-left: -300px
+}
+
+.bind .button, .bind .txt {
+    width: 55%
+}
+
+.bind #logo-text {
+    vertical-align: -7px
+}
+
+.bind .icons {
+    background: url(../images/login/login.png) no-repeat;
+    display: inline-block;
+    width: 74px;
+    height: 74px;
+    vertical-align: top
+}
+
+.bind .icons.weixin {
+    background-position: 0 0;
+    background-size: 70px;
+    width: 70px;
+    height: 68px
+}
+
+.bind .icons.qq {
+    background-position: 0 -141px;
+    background-size: 70px;
+    width: 70px;
+    height: 68px
+}
+
+.bind .icons.weibo {
+    background-position: 0 -211px;
+    background-size: 70px;
+    width: 70px;
+    height: 68px
+}
+
+.bind .icons.google {
+    background-position: 0 -73px;
+    background-size: 70px;
+    width: 70px;
+    height: 68px
+}
+
+.bind_item {
+    position: relative
+}
+
+.bind-arrow {
+    margin-left: 30px;
+    display: inline-block;
+    position: relative;
+    color: #666;
+    margin-right: 30px
+}
+
+.bind-tip {
+    margin-top: 40px
+}
+
+.des {
+    margin-top: 10px;
+    font-size: 14px
+}
+
+@media screen and (max-width: 760px) {
+    .page-con {
+        width: 100%;
+        left: 0;
+        margin-left: 0
+    }
+}

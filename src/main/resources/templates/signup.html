@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+    <title>注册 | Routing Switching Virtual Platform</title>
+    <meta name="renderer" content="webkit">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
+    <link rel="icon" href="icon/topo.png" type="img/x-ico" />
+    <link rel="stylesheet" href="assets/css/login-9c7e54f1.css" type="text/css"/>
+    <link rel="stylesheet" href="layer/theme/default/layer.css">
+    <script src="https://ssl.captcha.qq.com/TCaptcha.js"></script>
+</head>
+<body ng-app="rssp" ng-controller="regController">
+<canvas id="bg-canvas"></canvas>
+<div class="page-con" style="margin-top:-260px;">
+    <div><span id="logo-text">RSVP注册</span></div>
+    <div>
+        <form id="signup_form" >
+            <div style="margin-top:25px;position:relative;">
+                <input name="email" id="login_email" value="" class="txt" ng-model="user.username" type="text" placeholder='用户名'/>
+                <div class="error-tip"></div>
+            </div>
+            <div class="login-input" style="margin-top:20px;position:relative;">
+                <input name="pass" id="phone" class="txt" ng-model="user.phone" type="text" placeholder='电话'/>
+                <div class="error-tip"></div>
+            </div>
+            <div class="login-input" style="margin-top:20px;position:relative;">
+                <input name="pass" id="login_password" ng-model="user.extendOne" class="txt" type="password" placeholder='密码'/>
+                <div class="error-tip"></div>
+            </div>
+            <div class="login-input" style="margin-top:20px;position:relative;">
+                <input ng-model="user.name" name="fullname" id="login_fullname" class="txt" type="text" value=""
+                       placeholder='请输入不超过15位字符的昵称'/>
+                <div class="error-tip"></div>
+                <input name="signup_ticket" id="signup_ticket" type="hidden"/>
+                <input name="randstr" id="randstr" type="hidden"/>
+            </div>
+            <div id="tencent_btn" style="margin-top:20px;">
+                <span id=TencentCaptcha class="button" ng-click="reg()">立即注册</span>
+            </div>
+
+        </form>
+    </div>
+
+</div>
+<div class="weixin-con" id="weixin_dlg">
+    <div style="margin-top:200px;">加载中...</div>
+</div>
+
+<script>
+    (function (i, s, o, g, r, a, m) {
+        i['GoogleAnalyticsObject'] = r;
+        i[r] = i[r] || function () {
+            (i[r].q = i[r].q || []).push(arguments)
+        }, i[r].l = 1 * new Date();
+        a = s.createElement(o),
+            m = s.getElementsByTagName(o)[0];
+        a.async = 1;
+        a.src = g;
+        m.parentNode.insertBefore(a, m)
+    })(window, document, 'script', 'https://www.google-analytics.com/analytics.js', 'ga');
+    ga('create', 'UA-28802488-1', 'auto');
+    ga('send', 'pageview');
+</script>
+<script main=true src="assets/js/min/signup.min-9c7e54f1.js" charset="UTF-8" type="text/javascript"></script>
+<script src="js/jquery.3.2.1.min.js"></script>
+<script src="layer/layer.js"></script>
+<script src="angular/angular.min.js"></script>
+<script src="angular/app.js"></script>
+<script src="angular/service/regService.js"></script>
+<script src="angular/controller/regController.js"></script>
+</body>
+</html>

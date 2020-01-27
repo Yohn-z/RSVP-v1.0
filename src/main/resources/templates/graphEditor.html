@@ -1,0 +1,669 @@
+<!DOCTYPE HTML>
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+
+    <meta charset="utf-8"/>
+    <title>Let's draw</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="" />
+    <link rel="icon" href="icon/head.png" type="img/x-ico" />
+    <link href="css/bootstrap.css" type="text/css" rel="stylesheet" />
+    <link href="css/bootstrap-responsive.css" type="text/css" rel="stylesheet" />
+    <link id="theme" rel="stylesheet" type="text/css" href="themes/bootstrap/easyui.css">
+    <link rel="stylesheet" type="text/css" href="themes/icon.css">
+    <link id="flowPath" href="css/editor.css" type="text/css" rel="stylesheet" />
+    <link href="css/header.css" type="text/css" rel="stylesheet" />
+    <link href="css/main_topology.css" type="text/css" rel="stylesheet" />
+    <link href="css/jquery.ipinput.css" type="text/css" rel="stylesheet"/>
+
+    <!-- fakeloader css 页面加载遮罩-->
+    <script src="js/jquery-1.10.2.js" type="text/javascript"></script>
+    <link href="fakeloader/fakeloader.css" rel="stylesheet">
+    <script src="fakeloader/fakeloader.min.js"></script>
+
+    <style type="text/css">
+        .style{width: 700px;margin: auto;font-size: 18px;color: cadetblue;}
+        .tooltip {
+            font-size: 12px;
+            font-family: \5b8b\4f53;
+            line-height: 1.5;
+            position: absolute;
+            padding: 5px;
+            z-index: 100003;
+            opacity: .8
+        }
+
+        .tipsy-arrow {
+            position: absolute;
+            width: 0;
+            height: 0;
+            line-height: 0;
+            border: 6px dashed #FFA500;
+            top: 0;
+            left: 20%;
+            margin-left: -5px;
+            border-bottom-style: solid;
+            border-top: 0;
+            border-left-color: transparent;
+            border-right-color: transparent
+        }
+
+        .tipsy-arrow-n {
+            border-bottom-color: #FFA500;
+        }
+
+        .tipsy-inner {
+            background-color: #FFA500;
+            color: #fff;
+            max-width: 200px;
+            padding: 5px 8px 4px 8px;
+            text-align: center;
+            border-radius: 3px
+        }
+    </style>
+</head>
+
+<body  class="easyui-layout bodySelectNone" id="body" onselectstart="return false">
+<div class="fakeloader"></div>
+<script>
+    $(".fakeloader").fakeLoader({
+        timeToHide:60000,
+        bgColor:"#fff",
+        spinner:"spinner3"
+    });
+</script>
+<div id="title" region="north" split="false" border="false" class="titleTool" style="min-height: 68px;background: #f7f7f7;border: 0;">
+    <div id="header" class="navbar" style="background: #f7f7f7;border: 0;min-height: 68px;">
+        <div class="navbar-inner" style="background: #f7f7f7;border: 0;min-height: 68px;margin-left:5px">
+            <!-- logo -->
+            <div style="width: 60%;height: 30px;float: left;">
+                 <a id="inputtittle1" class="brand hidden-phone" style="float:left;color: #000;margin-left: -10px;margin-top: 8px;font-size: 18px" href="#">未命名文件</a>
+                <input id="inputtittle2" type="text" class="brand hidden-phone" style="display: none;float:left;color: #000;width:300px;height:24px;margin-left: -2px;font-size: 15px" value="未命名文件" />
+             </div>
+
+
+            <div style="float: left;margin-top:7px;width: 60%;">
+                <a style="" href="./">
+                    <img alt="返回" title="返回" width="20" height="20" src="images/topology/backindex.png"/>
+                </a>
+               
+                  <img alt="全屏查看"	title="全屏查看" width="17" height="17" src="images/topology/fullScreenView.png" onClick="editor.utils.showInFullScreen(editor.stage.canvas,'RequestFullScreen');" class="buttonStyle"/>
+                  <img alt="居中显示"	title="居中显示" width="17" height="17" src="images/topology/toMiddleWidth.fw.png" onClick="editor.utils.showInCenter()" class="buttonStyle"/>
+                  <img alt="预览"	title="预览" width="17" height="17" src="images/topology/preview.fw.png" onClick="editor.utils.showPic();" class="buttonStyle"/>
+                  <img alt="保存"	title="保存" width="17" height="17" src="images/topology/save.fw.png" onClick="" class="buttonStyle"/>
+                  <img alt="复制"	title="复制" width="17" height="17" src="images/topology/copy.fw.png" onClick="editor.utils.cloneSelectedNodes()" class="buttonStyle"/>
+                  <img alt="删除"	title="删除" width="17" height="17" src="images/topology/delete.fw.png" onClick="editor.utils.deleteSelectedNodes();" class="buttonStyle"/>
+                  <img alt="清空"	title="清空" width="17" height="17" src="images/topology/trash.fw.png" onClick="editor.utils.clear();" class="buttonStyle"/>
+                  <img alt="放大"	title="放大" width="17" height="17" src="images/topology/zoomBig.png" onclick="editor.utils.scalingBig()" class="buttonStyle"/>
+                  <img alt="缩小"   title="缩小" width="17" height="17" src="images/topology/zoomSmall.png"  onclick="editor.utils.scalingSmall()" class="buttonStyle"/>
+                 <!-- <img alt="重做"	title="重做" width="17" height="17" src="images/topology/next.fw.png" onClick="editor.utils.reMakeAllNode()" class="buttonStyle"/>-->
+            </div>
+            <div style="float: right;margin-top:-10px;width: 20%;">
+                <button class="btn btn-small"  id="export"  data-toggle="modal" data-target="#myModal">下载</button>
+                <input type="button" class="btn btn-small" id="import" value="导入"/>
+                <input type="file" class="btn btn-small" id="importfile" style="display: none" value="导入"/>
+                <a class="btn btn-small" href="./network">networkEditor</a>
+              <!--  <span style="font-size: 10px;height: 20px;">|</span>-->
+                <img src="images/person/tou.png" width="30" height="30">
+                <span style="font-size: 15px;">yuhong</span>
+            </div>
+
+
+
+        </div>
+    </div>
+</div>
+<div id="leftContent" region="west" split="true" title="图形区" class="leftContent">
+
+    <div class="easyui-accordion overflowHidden" fit="true" border="false">
+        <div title="基础图形" class="flowImag" style="background-color:#FFFFFF;" >
+            <table class="tp_table" width="100%" >
+                <tr><td width="100%" align="center">
+                    <div id="Text" divType="mode" datatype="TX" draggable="true">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/Text.png" class="nodeStyle"/>
+                        <br><span>文本</span>
+                    </div>
+
+                </td></tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="tip" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/tip.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="3b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/3b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="5b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/5b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="6b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/6b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                <td width="100%" align="center">
+                    <div id="f" divType="mode" datatype="GH" draggable="true" title="">
+                        <div class="title">&nbsp;</div>
+                        <img name="backGroundImg" src="icon/f.png" class="nodeStyle"/>
+                        <br><span></span>
+                    </div>
+                </td>
+            </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="l4b" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/l4b.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="o" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/o.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+
+            </table>
+        </div>
+        <div title="箭头符号" class="flowImag" style="background-color:#FFFFFF;" >
+            <table class="tp_table" width="100%" >
+
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="down" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/down.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="top" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/top.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="leftz" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/leftz.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="rightz" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/rightz.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="rlz" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/rlz.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="udz" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/udz.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="wl" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/wl.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="wr" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/wr.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="kuor" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/kuor.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+                <tr>
+                    <td width="100%" align="center">
+                        <div id="kuoy" divType="mode" datatype="GH" draggable="true" title="">
+                            <div class="title">&nbsp;</div>
+                            <img name="backGroundImg" src="icon/kuoy.png" class="nodeStyle"/>
+                            <br><span></span>
+                        </div>
+                    </td>
+                </tr>
+            </table>
+        </div>
+
+        <div title="连线" style="background-color:#FFFFFF;" id="basicGraph">
+
+            <table class="tp_table" width="100%">
+                <tr><td width="100%" align="center">
+                    <div id="baseLine1" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="simpleLine" name="backGroundImg" src="images/nline1.png" class="nodeStyle" style="border-radius:5px" />
+                        <br><span>直线</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center">
+                    <div id="baseLine10" divType="baseMode" gtype="L" datatype="line" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img  id="crossLine" name="backGroundImg" src="images/nline2.png" class="nodeStyle"  style="border-radius:5px" />
+                        <br><span>虚线</span>
+                    </div>
+                </td></tr>
+
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine2" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="foldLineH" name="backGroundImg" src="images/3t.png" class="nodeStyle" style="border-radius:5px"/>
+                        <br><span>折线(横向)</span>
+                    </div>
+                </td></tr>
+
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine5" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="foldLineV" name="backGroundImg" src="images/3th.png" class="nodeStyle" style="border-radius:5px"/>
+                        <br><span>折线(纵向)</span>
+                    </div>
+                </td></tr>
+
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine3" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="flexLineH" name="backGroundImg" src="images/1th.png" class="nodeStyle" style="border-radius:5px"/>
+                        <br><span>二次折线(横向)</span>
+                    </div>
+                </td></tr>
+                <tr><td width="100%" align="center" >
+                    <div id="baseLine4" divType="baseMode" gtype="L" datatype="foldLine" draggable="false">
+                        <div class="title">&nbsp;</div>
+                        <img id="flexLineV" name="backGroundImg" src="images/1t.png" class="nodeStyle" style="border-radius:5px"/>
+                        <br><span>二次折线(纵向)</span>
+                    </div>
+                </td></tr>
+            </table>
+        </div>
+
+    </div>
+</div>
+
+<div region="center" title='编辑区' id="contextBody" style="" class="mapContext">
+
+
+<canvas id="drawCanvas" class="mapContext">
+您的浏览器不支持HTML5!
+</canvas>
+
+    <textarea onkeydown="if(event.keyCode==13)this.blur();" style="display:none;width: 170px;height:40px;position: absolute;z-index: 9" id="deviceText"></textarea>
+
+    <div id="nodeMainMenu" class="modeRight2" style="z-index: 9">
+        <div class="applicationLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">应用布局</span></div>
+        <div id="changeNodeText" class="nodeText"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">节点文字</span></div>
+        <div class="zoomBig"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">放大(Shift+)</span></div>
+        <div class="zoomSmall"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">缩小(Shift-)</span></div>
+        <div class="modeRightShunShi"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顺时针旋转(Shift+U)</span></div>
+        <div class="modeRightNiShi"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">逆时针旋转(Shift+I)</span></div>
+        <div class="modeRightDelete"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">删除节点(Delete)</span></div>
+        <div class="modeRightCopy" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">复制节点(Shift+C)</span></div>
+        <div class="modeRightCancel"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">撤销(Shift+Z)</span></div>
+        <div class="modeRightRedo"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">重做(Shift+R)</span></div>
+    </div>
+    <div id="lineMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">添加描述</span></div>
+        <div class="modeRightDelete" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">删除连线</span></div>
+    </div>
+
+    <div id="nodeTextMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">修改节点文字</span></div>
+        <div id="justfyNodeText" class="nodeRightEdit" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">调整节点文字位置</span></div>
+    </div>
+
+    <div id="nodeTextPosMenu" class="modeRight2" style="z-index: 9">
+        <div class="theTopLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居左</span></div>
+        <div class="theTopCenter" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居中</span></div>
+        <div class="theTopRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">顶部居右</span></div>
+        <div class="theMiddleLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">中间居左</span></div>
+        <div class="center" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">居中</span></div>
+        <div class="theMiddleRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">中间居右</span></div>
+        <div class="theBottomLeft"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居左</span></div>
+        <div class="theBottomCenter" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居中</span></div>
+        <div class="theBottomRight" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">底部居右</span></div>
+    </div>
+
+    <div id="mainMenu" class="modeRight2" style="z-index: 9">
+        <div class="zoomBig"  onClick="editor.utils.scalingBig()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">放大(Shift+)</span></div>
+        <div class="zoomSmall"  onClick="editor.utils.scalingSmall()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">缩小(Shift-)</span></div>
+        <div class="modeRightClear"  onClick="editor.utils.clear();" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">清空(Shift+Y)</span></div>
+        <div class="modeRightPrint"  onClick="editor.utils.showPic();" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">预览(Shift+P)</span></div>
+        <div class="modeRightFullScreen"  onClick="editor.utils.showInFullScreen(editor.stage.canvas,'RequestFullScreen')" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">全屏查看(Shift+F)</span></div>
+        <div class="modeRightCenter"  onClick="editor.utils.showInCenter()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">居中显示(Shift+G)</span></div>
+        <div class="modeRightSave"  onClick="editor.saveToplogy(true)" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">保存(Shift+S)</span></div>
+        <div class="modeRightSetRule" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="ruleLineSpan">隐藏参考线(Shift+L)</span></div>
+        <div class="viewHelp" onclick="editor.showHelpWindow()" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="showHelp">查看帮助(Shift+H)</span></div>
+        <div class="viewJSON" onclick="window.open('jsonView.html', '当前拓扑结构JSON展示', '').document.write(editor.stage.toJson())" onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan" id="showJSON">查看拓扑JSON结构</span></div>
+    </div>
+
+    <div id="groupMangeMenu" class="modeRight2" style="z-index: 9">
+        <div id="newGroup" class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">新建分组</span></div>
+        <div id="alignGroup" class="modeRightEdit"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">对齐方式</span></div>
+    </div>
+    <div id="groupAlignMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightMiddle"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">水平对齐</span></div>
+        <div class="modeTopMiddle"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">垂直对齐</span></div>
+    </div>
+
+    <div id="containerMangeMenu" class="modeRight2" style="z-index: 9">
+        <div class="modeRightDel"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">拆分</span></div>
+    </div>
+
+    <div id="layoutMenu" class="modeRight2" style="z-index: 9">
+        <div class="cancelTheLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">取消布局</span></div>
+        <div class="packetLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">分组布局</span></div>
+        <div class="theTreeLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">树形布局</span></div>
+        <div class="circularLayout"  onMouseMove="this.style.backgroundColor='#c5e7f6'" onMouseOut="this.style.backgroundColor=''"><span class="menuSpan">圆形布局</span></div>
+    </div>
+    <div id="ethernet" class="modeRight2" style="z-index: 9">
+
+    </div>
+
+</div>
+
+<div id = "rightBody" >
+    <div  id="mainControl"  >
+
+    </div>
+</div>
+<!-- 模态框（Modal） -->
+<div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true"  >
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+                <h4 class="modal-title" id="myModalLabel">下载选择</h4>
+            </div>
+            <div id="selectfile">
+                <div class="radio" style="margin:20px 0 20px 20px">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios1" value="1" checked> 下载图片（.png）
+                    </label>
+                </div>
+                <div class="radio" style="margin:20px 0 20px 20px">
+                    <label>
+                        <input type="radio" name="optionsRadios" id="optionsRadios2" value="2">json文件（.json）
+                    </label>
+                </div>
+            </div>
+
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">关闭</button>
+                <button id="downfile" type="button" class="btn btn-primary">确定</button>
+            </div>
+        </div><!-- /.modal-content -->
+    </div><!-- /.modal -->
+</div>
+
+
+
+</body>
+
+<!--<script src="https://cdn.bootcss.com/FileSaver.js/2014-11-29/FileSaver.js" charset="utf-8" type="text/javascript" ></script>
+<script src="https://cdn.staticfile.org/twitter-bootstrap/3.3.7/js/bootstrap.min.js"></script>-->
+<script src="js/filesaver.js" charset="utf-8" type="text/javascript" ></script>
+<script src="js/bootstrap.min.js"></script>
+<script src="js/util.js" type="text/javascript" ></script>
+<script src="layer/layer.js"></script>
+<script src="js/jquery.easyui.min.js" type="text/javascript"></script>
+<script src="backjs/jtopo-0.4.8-dev.js" type="text/javascript" ></script>
+<script src="backjs/editor.js" type="text/javascript" ></script>
+<script type="text/javascript">
+
+    jQuery(document).ready(function () {
+        var sweetTitles = {
+            x: 10,
+            y: 20,
+            tipElements: "a,span,img,div ",
+            noTitle: false,
+            init: function() {
+                var noTitle = this.noTitle;
+                $(this.tipElements).each(function() {
+                    $(this).mouseover(function(e) {
+                        if (noTitle) {
+                            isTitle = true;
+                        } else {
+                            isTitle = $.trim(this.title) != '';
+                        }
+                        if (isTitle) {
+                            this.myTitle = this.title;
+                            this.title = "";
+                            var tooltip =
+                                "<div class='tooltip'><div class='tipsy-inner'>" + this.myTitle +
+                                "</div></div>";
+                            $('body').append(tooltip);
+                            $('.tooltip').css({
+                                "top": (e.pageY + 20) + "px",
+                                "left": (e.pageX - 20) + "px"
+                            }).show('fast');
+                        }
+                    }).mouseout(function() {
+                        if (this.myTitle != null) {
+                            this.title = this.myTitle;
+                            $('.tooltip').remove();
+                        }
+                    }).mousemove(function(e) {
+                        $('.tooltip').css({
+                            "top": (e.pageY + 20) + "px",
+                            "left": (e.pageX - 20) + "px"
+                        });
+                    });
+                });
+            }
+        };
+        $(function() {
+            sweetTitles.init();
+        });
+
+        //为线段添加点击效果
+        $("#simpleLine").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#crossLine").css("background-color","white");
+                $("#foldLineH").css("background-color","white");
+                $("#foldLineV").css("background-color","white");
+                $("#flexLineH").css("background-color","white");
+                $("#flexLineV").css("background-color","white");
+                editor.lineType='line'
+            }
+
+        });
+        $("#crossLine").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#simpleLine").css("background-color","white");
+                $("#foldLineH").css("background-color","white");
+                $("#foldLineV").css("background-color","white");
+                $("#flexLineH").css("background-color","white");
+                $("#flexLineV").css("background-color","white");
+                editor.lineType='crossLine'
+            }
+
+        });
+
+        $("#foldLineH").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#crossLine").css("background-color","white");
+                $("#simpleLine").css("background-color","white");
+                $("#foldLineV").css("background-color","white");
+                $("#flexLineH").css("background-color","white");
+                $("#flexLineV").css("background-color","white");
+                editor.lineType='foldLine';editor.config.direction='horizontal';
+            }
+
+        });
+        $("#foldLineV").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#crossLine").css("background-color","white");
+                $("#foldLineH").css("background-color","white");
+                $("#simpleLine").css("background-color","white");
+                $("#flexLineH").css("background-color","white");
+                $("#flexLineV").css("background-color","white");
+                editor.lineType='foldLine';editor.config.direction='vertical';
+            }
+
+        });
+        $("#flexLineH").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#crossLine").css("background-color","white");
+                $("#foldLineH").css("background-color","white");
+                $("#foldLineV").css("background-color","white");
+                $("#simpleLine").css("background-color","white");
+                $("#flexLineV").css("background-color","white");
+                editor.lineType='flexLine';editor.config.direction='horizontal';
+            }
+
+        });
+        $("#flexLineV").click(function(){
+            if(this.style.backgroundColor == "darkgray"){
+                editor.lineType='';
+                $(this).css("background-color","white");
+            }else{
+                $(this).css("background-color","darkgray");
+                $("#crossLine").css("background-color","white");
+                $("#foldLineH").css("background-color","white");
+                $("#foldLineV").css("background-color","white");
+                $("#flexLineH").css("background-color","white");
+                $("#simpleLine").css("background-color","white");
+                editor.lineType='flexLine';editor.config.direction='vertical';
+            }
+
+        });
+
+
+
+        //文件名编辑
+        $("#inputtittle1").click(function () {
+            $("#inputtittle2").val($(this).html());
+            $("#inputtittle1").hide();
+            $("#inputtittle2").show();
+        })
+        $("#inputtittle2").blur(function () {
+            if($.trim($("#inputtittle2").val()) != ""){
+                $("#inputtittle1").text($("#inputtittle2").val());
+            }else{
+                $("#inputtittle1").text("未命名文件");
+            }
+
+            $("#inputtittle2").hide();
+            $("#inputtittle1").show();
+
+        })
+
+        //导入
+        $("#import").click(function () {
+            $("#importfile").click();
+        })
+
+
+        //下载
+        $("#downfile").click(function () {
+            var selected = $('#selectfile input:radio:checked').val();
+            if(selected == 1){
+                editor.utils.downPic();
+            }else if(selected == 2){
+                editor.utils.saveHandler();
+            }else{
+                alert("您还没有选择哦!");
+            }
+
+        })
+        //加载图形编辑器！！！！！！
+        editor.utils.loadGraph();
+
+
+
+        //加载完关闭
+        $(".fakeloader").fakeLoader({
+            timeToHide: 1,
+            bgColor: "#fff",
+            spinner: "spinner2"
+        });
+       /* let v = editor.utils.getPic()
+        alert(v);*/
+    });
+
+</script>
+</html>
