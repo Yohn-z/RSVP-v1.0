@@ -20,12 +20,6 @@ import org.springframework.web.multipart.MultipartFile;
 import javax.servlet.http.HttpSession;
 import java.io.IOException;
 
-/**
- * network controller
- *
- * @author guolin
- * @date 2019/4/9/009
- **/
 @RestController
 public class NetWorkController {
 
