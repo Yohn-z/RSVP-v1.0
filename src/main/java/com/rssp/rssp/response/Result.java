@@ -2,11 +2,6 @@ package com.rssp.rssp.response;
 
 import java.io.Serializable;
 
-/**
- * 返回结果类
- * @author 印国林
- * @time 下午2:02:15
- */
 public class Result implements Serializable{
 
 	//返回状态
