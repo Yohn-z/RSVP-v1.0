@@ -13,19 +13,13 @@ import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
-/**
-* @Description:    aliyunOSS工具类
-* @Author:         印国林
-* @CreateDate:     2018/10/31/031 21:43
-* @Version:        1.0
-*/
 public class AliyunOSSUtil {
 
-    private static final String endpoint = "oss-cn-beijing.aliyuncs.com";
-    private static final String accessKeyId = "LTAIvXuAo73fyGAT";
-    private static final String accessKeySecret = "rcW4z2LMrqasXD892qDJreaPohmXOn";
-    private static final String bucketName = "guolin";
-    private static final String fileHost = "system";
+    private static final String endpoint = "XXXXXXXXX";
+    private static final String accessKeyId = "XXXXXXXXX";
+    private static final String accessKeySecret = "XXXXXXXXX";
+    private static final String bucketName = "XXXXXXXXX";
+    private static final String fileHost = "XXXXXXXXX";
 
     private static final org.slf4j.Logger logger = LoggerFactory.getLogger(AliyunOSSUtil.class);
 
